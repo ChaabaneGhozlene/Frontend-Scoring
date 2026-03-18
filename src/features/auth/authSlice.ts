@@ -4,20 +4,35 @@ import { jwtDecode }   from 'jwt-decode'
 import type { AuthState, AuthUser, LoginRequest, LoginResponse } from './authTypes'  // ← import type
 
 const storedToken = localStorage.getItem('token')
+const storedExpiresAt = localStorage.getItem('expiresAt')
+
 let storedUser: AuthUser | null = null
-if (storedToken) {
-  try { storedUser = jwtDecode<AuthUser>(storedToken) }
-  catch { storedUser = null }
+let validToken: string | null = null
+let validExpiresAt: string | null = null
+
+// ✅ Vérifier si le token est encore valide
+if (storedToken && storedExpiresAt && new Date(storedExpiresAt).getTime() > Date.now()) {
+  try {
+    storedUser = jwtDecode<AuthUser>(storedToken)
+    validToken = storedToken
+    validExpiresAt = storedExpiresAt
+  } catch {
+    // token invalide → supprimer
+    storedUser = null
+    validToken = null
+    validExpiresAt = null
+    localStorage.removeItem('token')
+    localStorage.removeItem('expiresAt')
+  }
 }
 
 const initialState: AuthState = {
-  user:      storedUser,
-  token:     storedToken,
-  expiresAt: localStorage.getItem('expiresAt'),
-  loading:   false,
-  error:     null,
+  user: storedUser,
+  token: validToken,
+  expiresAt: validExpiresAt,
+  loading: false,
+  error: null,
 }
-
 const authSlice = createSlice({
   name: 'auth',
   initialState,

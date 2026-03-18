@@ -7,7 +7,6 @@ export const API_ENDPOINTS = {
   RECORDS_SEARCH: '/records/search',
   RECORDS_EXPORT: '/records/export',
   RECORD_BY_ID: (id: number) => `/records/${id}`,
-  RECORD_REQUALIFY: '/records/requalify',
 
   // Filters
   FILTERS: '/filters',
