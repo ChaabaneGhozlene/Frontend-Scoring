@@ -1,7 +1,7 @@
 // Correspond au LoginDto du backend
 export interface LoginRequest {
-  Login: string       // ← majuscule comme le DTO C#
-  Password: string    // ← majuscule comme le DTO C#
+  Login: string       
+  Password: string    
 }
 
 // Correspond à la réponse de POST /api/auth/login

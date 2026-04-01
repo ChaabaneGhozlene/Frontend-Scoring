@@ -10,7 +10,9 @@ import ConfigurationCampagnesPage from "../features/Configuration/Campagnes/page
 import AgentTeamSettingsPage from "../features/Configuration/AgentTeamConfig/pages/AgentTeamSettingsPage";
 import NotificationSettingPage from "../features/Configuration/AgentMailConfig/pages/NotificationSettingPage";
 import PublicRoute from "../features/auth/components/PublicRoute";
-
+import EvaluationPage from "../features/evaluation/pages/Evaluationpage";
+import UsersPage from "../features/Users/page/Userspage";
+import EvalPage from "../features/eval/page/Evalpage";
 const AppRouter = () => {
   return (
     <BrowserRouter>
@@ -38,6 +40,11 @@ const AppRouter = () => {
             <Route path={ROUTES.CONFIGURATION_AGENTS_DETAILS} element={<NotificationSettingPage />} />
             <Route path={ROUTES.CONFIGURATION_CAMPAIGNS} element={<ConfigurationCampagnesPage />} />
             <Route path={ROUTES.CONFIGURATION_AGENTS} element={<AgentTeamSettingsPage />} />
+            <Route path={ROUTES.EVALUATIONS_LIST} element={<EvaluationPage />} />
+            <Route path={ROUTES.EVALUATION} element={<EvalPage />} />
+
+                        <Route path={ROUTES.USERS} element={<UsersPage />} />
+
           </Route>
         </Route>
 

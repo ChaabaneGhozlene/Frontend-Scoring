@@ -3,8 +3,7 @@ import axiosInstance from '../../services/axiosInstance';
 import type {
   RecordingsSearchRequest,
   RecordingsSearchResponse,
-  UserFilter,
-  CreateFilterDto,
+
   ViewConfig,
   CreateViewConfigDto,
 } from './Recordingstypes';
@@ -34,35 +33,25 @@ export const deleteRecording = async (id: number): Promise<void> => {
 
 
 
-// ─── Filters ──────────────────────────────────────────────────────────────────
-
-export const fetchFilters = async (): Promise<UserFilter[]> => {
-  const { data } = await axiosInstance.get('/filters');
-  return data;
-};
-
-export const createFilter = async (
-  dto: CreateFilterDto
-): Promise<UserFilter> => {
-  const { data } = await axiosInstance.post('/filters', dto);
-  return data;
-};
-
-export const deleteFilter = async (id: number): Promise<void> => {
-  await axiosInstance.delete(`/filters/${id}`);
-};
 
 // ─── View Configs ─────────────────────────────────────────────────────────────
 
+const RECORDING_VIEW_GROUPE = 1   // ← ajouter cette constante
+
 export const fetchViewConfigs = async (): Promise<ViewConfig[]> => {
-  const { data } = await axiosInstance.get('/viewconfigs');
+  const { data } = await axiosInstance.get('/viewconfigs', {
+    params: { groupe: RECORDING_VIEW_GROUPE }   // ← filtre groupe=1
+  });
   return data;
 };
 
 export const createViewConfig = async (
   dto: CreateViewConfigDto
 ): Promise<ViewConfig> => {
-  const { data } = await axiosInstance.post('/viewconfigs', dto);
+  const { data } = await axiosInstance.post('/viewconfigs', {
+    ...dto,
+    groupe: RECORDING_VIEW_GROUPE,   // ← stamp groupe=1 à la création
+  });
   return data;
 };
 

@@ -1,4 +1,4 @@
-// ─── Recording Entity ────────────────────────────────────────────────────────
+// ─── Recording Entity ─────────────────────────────────────────────────────────
 
 export interface Recording {
   id:                   number;
@@ -16,7 +16,7 @@ export interface Recording {
   duration:             number | null;
   hasHistory:           boolean;
   hasEvaluation:        boolean;
-  HasHistoryScreen:    boolean;
+  HasHistoryScreen:     boolean;
   lsId:                 number | null;
   typeRequalif:         number | null;
   audioUrl?:            string;
@@ -51,10 +51,24 @@ export interface CreateViewConfigDto {
 }
 
 // ─── Column Filter ────────────────────────────────────────────────────────────
-
+// Compatible avec TanStack Table ColumnFiltersState
 export interface ColumnFilter {
   id:    string;
   value: unknown;
+}
+
+// ─── View Layout State ────────────────────────────────────────────────────────
+// Ce qui est sérialisé dans layoutJson
+export interface ViewLayoutState {
+  columnVisibility:  Record<string, boolean>;
+  columnSizing:      Record<string, number>;
+  columnOrder?:      string[];
+  dateDebut?:        string;
+  dateFin?:          string;
+  selectedFilterId?: number | null;
+  columnFilters?:    ColumnFilter[];
+  pageSize?:         number;
+  page?:             number;
 }
 
 // ─── Search / Pagination ──────────────────────────────────────────────────────
@@ -84,17 +98,13 @@ export interface RecordingsState {
   pageSize:             number;
   loading:              boolean;
   error:                string | null;
-
-  columnFilters:        ColumnFilter[];   // ← AJOUT : filtres colonnes persistés dans Redux
-
+  columnFilters:        ColumnFilter[];
   filters:              UserFilter[];
   filtersLoading:       boolean;
   selectedFilterId:     number | null;
-
   viewConfigs:          ViewConfig[];
   viewConfigsLoading:   boolean;
   selectedViewConfigId: number | null;
-
   dateDebut:            string;
   dateFin:              string;
 }

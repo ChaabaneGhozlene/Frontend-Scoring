@@ -60,7 +60,7 @@ const NotificationSettingPage: FC = () => {
   }
 
   const table = useMantineReactTable({
-    ...getSharedTableProps<AgentMailConfig>(),
+    ...getSharedTableProps<AgentMailConfig>(agents.length),
     columns,
     data: agents,
     state: { isLoading: loading, rowSelection },

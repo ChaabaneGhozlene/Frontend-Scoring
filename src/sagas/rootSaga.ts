@@ -4,6 +4,9 @@ import { recordingsSaga } from '../features/recordings/Recordingssaga';
 import { configurationSaga } from '../features/Configuration/Campagnes/ConfigurationCampagnessaga';
 import { agentMailConfigSaga } from '../features/Configuration/AgentMailConfig/AgentMailConfigSaga';
 import { agentTeamSaga } from '../features/Configuration/AgentTeamConfig/AgentTeamSaga';
+import evaluationSaga from '../features/evaluation/Evaluationsaga';
+import { usersSaga } from '../features/Users/usersaga';
+import { evalSaga } from '../features/eval/Evalsaga';
  function* rootSaga() {
   yield all([
     fork(authSaga),
@@ -12,6 +15,9 @@ import { agentTeamSaga } from '../features/Configuration/AgentTeamConfig/AgentTe
     fork(configurationSaga),
     fork(agentTeamSaga),   
     fork(agentMailConfigSaga),
+    fork(evaluationSaga),
+    fork(usersSaga),
+    fork(evalSaga),
 
   ]);
 }

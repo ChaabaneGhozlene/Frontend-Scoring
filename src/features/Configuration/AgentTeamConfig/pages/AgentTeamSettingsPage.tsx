@@ -71,7 +71,7 @@ const AgentTeamSettingsPage: FC = () => {
   }
 
   const table = useMantineReactTable({
-    ...getSharedTableProps<AgentTeamMember>(),
+    ...getSharedTableProps<AgentTeamMember>(members.length),
     columns,
     data: members,
     state: { isLoading: membersLoading, rowSelection },

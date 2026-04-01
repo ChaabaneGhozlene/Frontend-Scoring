@@ -100,6 +100,7 @@ const recordingsSlice = createSlice({
     createFilterSuccess(state, action: PayloadAction<UserFilter>) {
       state.filtersLoading = false;
       state.filters.push(action.payload);
+      state.selectedFilterId = action.payload.id
     },
     createFilterFailure(state, action: PayloadAction<string>) {
       state.filtersLoading = false;

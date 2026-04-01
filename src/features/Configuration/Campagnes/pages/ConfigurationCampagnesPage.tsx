@@ -147,7 +147,7 @@ const ConfigurationCampagnesPage: FC = () => {
   ], [])
 
   const table = useMantineReactTable<LsCalledCampaignDto>({
-  ...getSharedTableProps<LsCalledCampaignDto>(),
+  ...getSharedTableProps<LsCalledCampaignDto>(campaigns.length),
   columns,
   data: filtered,
   state: { isLoading: loading, rowSelection },

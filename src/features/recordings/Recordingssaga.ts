@@ -2,9 +2,7 @@ import { call, put, takeLatest } from 'redux-saga/effects';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import {
   searchRecordings,
-  fetchFilters,
-  createFilter,
-  deleteFilter,
+ 
   fetchViewConfigs,
   createViewConfig,
   updateViewConfig,
@@ -14,15 +12,7 @@ import {
   fetchRecordingsRequest,
   fetchRecordingsSuccess,
   fetchRecordingsFailure,
-  fetchFiltersRequest,
-  fetchFiltersSuccess,
-  fetchFiltersFailure,
-  createFilterRequest,
-  createFilterSuccess,
-  createFilterFailure,
-  deleteFilterRequest,
-  deleteFilterSuccess,
-  deleteFilterFailure,
+
   fetchViewConfigsRequest,
   fetchViewConfigsSuccess,
   fetchViewConfigsFailure,
@@ -38,10 +28,10 @@ import {
 } from './Recordingslice';
 import type {
   FetchRecordingsPayload,
-  CreateFilterPayload,
+  
   SaveViewConfigPayload,
   UpdateViewConfigPayload,
-  UserFilter,
+  
   ViewConfig,
 } from './Recordingstypes';
 
@@ -106,37 +96,7 @@ function* handleFetchRecordings(
   }
 }
 
-// ─── Filters ──────────────────────────────────────────────────────────────────
 
-function* handleFetchFilters(): Generator {
-  try {
-    const filters = (yield call(fetchFilters)) as UserFilter[];
-    yield put(fetchFiltersSuccess(filters));
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Erreur filtres';
-    yield put(fetchFiltersFailure(message));
-  }
-}
-
-function* handleCreateFilter(action: PayloadAction<CreateFilterPayload>): Generator {
-  try {
-    const filter = (yield call(createFilter, action.payload)) as UserFilter;
-    yield put(createFilterSuccess(filter));
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Erreur création filtre';
-    yield put(createFilterFailure(message));
-  }
-}
-
-function* handleDeleteFilter(action: PayloadAction<number>): Generator {
-  try {
-    yield call(deleteFilter, action.payload);
-    yield put(deleteFilterSuccess(action.payload));
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Erreur suppression filtre';
-    yield put(deleteFilterFailure(message));
-  }
-}
 
 // ─── View Configs ─────────────────────────────────────────────────────────────
 
@@ -188,9 +148,7 @@ function* handleDeleteViewConfig(action: PayloadAction<number>): Generator {
 
 export function* recordingsSaga() {
   yield takeLatest(fetchRecordingsRequest.type, handleFetchRecordings);
-  yield takeLatest(fetchFiltersRequest.type, handleFetchFilters);
-  yield takeLatest(createFilterRequest.type, handleCreateFilter);
-  yield takeLatest(deleteFilterRequest.type, handleDeleteFilter);
+  
   yield takeLatest(fetchViewConfigsRequest.type, handleFetchViewConfigs);
   yield takeLatest(saveViewConfigRequest.type, handleSaveViewConfig);
   yield takeLatest(updateViewConfigRequest.type, handleUpdateViewConfig);

@@ -1,6 +1,6 @@
 import { useMemo, useCallback, useState, useRef, useEffect } from 'react';
 import {
-  Button, ActionIcon, Tooltip, Group, Box, Text, Anchor,
+  Button, ActionIcon, Tooltip, Group, Box, Text, 
 } from '@mantine/core';
 import {
   IconDownload, IconHeadphones, IconVideo, IconTrash, IconFileText,
@@ -10,7 +10,6 @@ import {
   type MRT_ColumnDef, type MRT_Row,
   type MRT_PaginationState, type MRT_ColumnFiltersState,
 } from 'mantine-react-table';
-import { mkConfig, generateCsv, download } from 'export-to-csv';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState } from '../../../app/store';
 import {
@@ -19,19 +18,18 @@ import {
 } from '../Recordingslice';
 import type { Recording, ColumnFilter } from '../Recordingstypes';
 import { exportRecordings, deleteRecording } from '../Recordingsservice';
-import ListenHistoryModal  from './Listhistorymodal';
-import ScreenHistoryModal  from './Screenhistorymodal';
-import DeleteConfirmModal  from './Deleteconfirmmodal';
+import ListenHistoryModal from './Listhistorymodal';
+import ScreenHistoryModal from './Screenhistorymodal';
+import DeleteConfirmModal from './Deleteconfirmmodal';
+import { exportAll, exportRows, type ExportBlobParams } from '../../exportUtils';
 
-const csvConfig = mkConfig({
-  fieldSeparator: ',', decimalSeparator: '.', useKeysAsHeaders: true, filename: 'enregistrements',
-});
+
 
 const buildColumns = (
-  onHistory: (r: Recording) => void,
+  onHistory:       (r: Recording) => void,
   onScreenHistory: (r: Recording) => void,
-  onDelete: (r: Recording) => void,
-  onEvaluation: (r: Recording) => void,
+  onDelete:        (r: Recording) => void,
+  onEvaluation:    (r: Recording) => void,
 ): MRT_ColumnDef<Recording>[] => [
   {
     id: 'actions', header: 'Actions', size: 160,
@@ -69,42 +67,53 @@ const buildColumns = (
     ),
   },
   { accessorKey: 'callLocalTime',       header: 'Date Enregistrement', size: 170,
-    Cell: ({ cell }) => { const v = cell.getValue<string|null>(); return v ? <span>{v}</span> : null; } },
-  { accessorKey: 'agentId',             header: 'Agent ID',           size: 100 },
-  { accessorKey: 'prenomAgent',         header: 'Prénom',             size: 120 },
-  { accessorKey: 'nomAgent',            header: 'Nom Agent',          size: 140 },
-  { accessorKey: 'campaignDescription', header: 'Profil / Campagne',  size: 200 },
-  { accessorKey: 'callTypeDescription', header: 'Action',             size: 130 },
-  { accessorKey: 'numeroTel',           header: 'Indice / Numéro',    size: 140 },
-  { accessorKey: 'duration',            header: 'Durée Conv.',        size: 110,
-    Cell: ({ cell }) => cell.getValue<number|null>() ?? null },
-  { accessorKey: 'agentOid',            header: 'Agent OID',          size: 140 },
+    Cell: ({ cell }) => { const v = cell.getValue<string | null>(); return v ? <span>{v}</span> : null; } },
+  { accessorKey: 'agentId',             header: 'Agent ID',          size: 100 },
+  { accessorKey: 'prenomAgent',         header: 'Prénom',            size: 120 },
+  { accessorKey: 'nomAgent',            header: 'Nom Agent',         size: 140 },
+  { accessorKey: 'campaignDescription', header: 'Profil / Campagne', size: 200 },
+  { accessorKey: 'callTypeDescription', header: 'Action',            size: 130 },
+  { accessorKey: 'numeroTel',           header: 'Indice / Numéro',   size: 140 },
+  { accessorKey: 'duration',            header: 'Durée Conv.',       size: 110,
+    Cell: ({ cell }) => cell.getValue<number | null>() ?? null },
+  { accessorKey: 'agentOid',            header: 'Agent OID',         size: 140 },
 ];
 
 interface Props {
-  onOpenCreateFilter:   () => void;
- tableStateGetterRef?: React.MutableRefObject<(() => Record<string, unknown>) | null>;
-  initialColumnVisibility?: Record<string, boolean>; // ← NOUVEAU
-  initialColumnSizing?:     Record<string, number>;  // ← NOUVEAU
+  tableStateGetterRef?:     React.MutableRefObject<(() => Record<string, unknown>) | null>;
+  initialColumnVisibility?: Record<string, boolean>;
+  initialColumnSizing?:     Record<string, number>;
+  initialColumnFilters?:    ColumnFilter[];
 }
 
-const RecordingsTable = ({ onOpenCreateFilter, tableStateGetterRef,   initialColumnVisibility = {},  // ← NOUVEAU
-  initialColumnSizing     = {}, }: Props) => {
+const RecordingsTable = ({
+  tableStateGetterRef,
+  initialColumnVisibility = {},
+  initialColumnSizing     = {},
+  initialColumnFilters    = [],
+}: Props) => {
   const dispatch = useDispatch();
   const {
     records, totalCount, loading,
     page, pageSize, dateDebut, dateFin, selectedFilterId,
   } = useSelector((s: RootState) => s.recordings);
 
-  const [columnFilters,    setColumnFilters]    = useState<MRT_ColumnFiltersState>([]);
+  // ── État local contrôlé ──────────────────────────────────────────────────
+  const [columnFilters,    setColumnFilters]    = useState<MRT_ColumnFiltersState>(initialColumnFilters);
   const [rowSelection,     setRowSelection]     = useState<Record<string, boolean>>({});
-  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
-  const [columnSizing,     setColumnSizing]     = useState<Record<string, number>>({});
-  // ← NOUVEAU : applique le layout quand la vue change
+  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>(initialColumnVisibility);
+  const [columnSizing,     setColumnSizing]     = useState<Record<string, number>>(initialColumnSizing);
+
+  // ── Synchroniser quand la vue change (prop change via key ou sélection) ──
   useEffect(() => {
     setColumnVisibility(initialColumnVisibility);
     setColumnSizing(initialColumnSizing);
   }, [initialColumnVisibility, initialColumnSizing]);
+
+  // ── Synchroniser les filtres colonnes quand la vue change ────────────────
+  useEffect(() => {
+    setColumnFilters(initialColumnFilters);
+  }, [initialColumnFilters]);  // ← déclenché par changement de vue, pas par saisie utilisateur
 
   const [histRecord,    setHistRecord]    = useState<Recording | null>(null);
   const [histOpen,      setHistOpen]      = useState(false);
@@ -154,24 +163,24 @@ const RecordingsTable = ({ onOpenCreateFilter, tableStateGetterRef,   initialCol
     console.log('Évaluation', r.id);
   }, []);
 
-  const handleExportRows = useCallback((rows: MRT_Row<Recording>[]) => {
-    download(csvConfig)(generateCsv(csvConfig)(rows.map((r) => r.original) as never));
-  }, []);
+const handleExportRows = useCallback((rows: MRT_Row<Recording>[]) => {
+  exportRows<Recording>(
+    rows.map(r => r.original),
+    'enregistrements',
+  );
+}, []);
 
-  const handleExportAll = useCallback(async () => {
-    try {
-      const blob = await exportRecordings({
-        dateDebut, dateFin, filterId: selectedFilterId, page: 1, pageSize: 99999,
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = 'enregistrements.csv'; a.click();
-      URL.revokeObjectURL(url);
-    } catch {
-      download(csvConfig)(generateCsv(csvConfig)(records as never));
-    }
-  }, [dateDebut, dateFin, selectedFilterId, records]);
-
+const handleExportAll = useCallback(() => {
+  exportAll<Recording>({
+    dateDebut,
+    dateFin,
+    filterId:      selectedFilterId,
+    columnFilters: columnFilters as unknown[],          // ← cast simple
+    records,
+    filename:      'enregistrements',
+    fetchBlob:     exportRecordings as (p: ExportBlobParams) => Promise<Blob>, // ← cast service
+  });
+}, [dateDebut, dateFin, selectedFilterId, columnFilters, records]);
   const pagination: MRT_PaginationState = useMemo(
     () => ({ pageIndex: page - 1, pageSize }), [page, pageSize],
   );
@@ -193,12 +202,14 @@ const RecordingsTable = ({ onOpenCreateFilter, tableStateGetterRef,   initialCol
 
   const handleColumnFiltersChange = useCallback(
     (updater: MRT_ColumnFiltersState | ((p: MRT_ColumnFiltersState) => MRT_ColumnFiltersState)) => {
+      // ── Accumuler les filtres, ne pas écraser ────────────────────────────
       const next = typeof updater === 'function' ? updater(columnFilters) : updater;
-      setColumnFilters(next);
-      dispatch(setColumnFiltersAction(next as ColumnFilter[]));
+      setColumnFilters(next);                                    // ← state local à jour
+      dispatch(setColumnFiltersAction(next as ColumnFilter[]));  // ← Redux à jour
       dispatch(fetchRecordingsRequest({
         dateDebut, dateFin, filterId: selectedFilterId,
-        page: 1, pageSize, columnFilters: next as ColumnFilter[],
+        page: 1, pageSize,
+        columnFilters: next as ColumnFilter[],                   // ← envoie TOUS les filtres
       }));
     },
     [columnFilters, dispatch, dateDebut, dateFin, selectedFilterId, pageSize],
@@ -212,8 +223,12 @@ const RecordingsTable = ({ onOpenCreateFilter, tableStateGetterRef,   initialCol
   const table = useMantineReactTable({
     columns, data: records, rowCount: totalCount,
     state: {
-      isLoading: loading, pagination, columnFilters,
-      rowSelection, columnVisibility, columnSizing,
+      columnFilters:    columnFilters,    
+      isLoading:        loading,
+      pagination,
+      rowSelection,
+      columnVisibility,
+      columnSizing,
     },
     manualPagination: true, manualFiltering: true,
     onPaginationChange:    handlePaginationChange,
@@ -238,27 +253,22 @@ const RecordingsTable = ({ onOpenCreateFilter, tableStateGetterRef,   initialCol
     enableColumnDragging:       false,
     enableStickyHeader:         true,
     mantinePaginationProps: { rowsPerPageOptions: ['15', '25', '50', '100'] },
-    // Boutons export — tous red
-renderTopToolbarCustomActions: ({ table: t }) => (
-  <Box style={{ display: 'flex', gap: 8, padding: 8, flexWrap: 'wrap' }}>
-    <Button size="xs" color="red" variant="filled" leftIcon={<IconDownload size={14} />}
-      onClick={handleExportAll}>Export All</Button>
-    <Button size="xs" color="red" variant="filled" leftIcon={<IconDownload size={14} />}
-      disabled={t.getPrePaginationRowModel().rows.length === 0}
-      onClick={() => handleExportRows(t.getPrePaginationRowModel().rows)}>Export Rows</Button>
-    <Button size="xs" color="red" variant="filled" leftIcon={<IconDownload size={14} />}
-      disabled={t.getRowModel().rows.length === 0}
-      onClick={() => handleExportRows(t.getRowModel().rows)}>Export Page</Button>
-    <Button size="xs" color="red" variant="filled" leftIcon={<IconDownload size={14} />}
-      disabled={!t.getIsSomeRowsSelected() && !t.getIsAllRowsSelected()}
-      onClick={() => handleExportRows(t.getSelectedRowModel().rows)}>Export Selected</Button>
-  </Box>
-),
+    renderTopToolbarCustomActions: ({ table: t }) => (
+      <Box style={{ display: 'flex', gap: 8, padding: 8, flexWrap: 'wrap' }}>
+        <Button size="xs" color="red" variant="filled" leftIcon={<IconDownload size={14} />}
+          onClick={handleExportAll}>Export All</Button>
+        
+        <Button size="xs" color="red" variant="filled" leftIcon={<IconDownload size={14} />}
+          disabled={t.getRowModel().rows.length === 0}
+          onClick={() => handleExportRows(t.getRowModel().rows)}>Export Page</Button>
+        <Button size="xs" color="red" variant="filled" leftIcon={<IconDownload size={14} />}
+          disabled={!t.getIsSomeRowsSelected() && !t.getIsAllRowsSelected()}
+          onClick={() => handleExportRows(t.getSelectedRowModel().rows)}>Export Selected</Button>
+      </Box>
+    ),
     renderBottomToolbarCustomActions: () => (
       <Box px="xs">
-        <Anchor size="sm" color="red" onClick={onOpenCreateFilter} style={{ cursor: 'pointer' }}>
-          ♥ Create Filter
-        </Anchor>
+        <Text size="xs" c="dimmed">{totalCount} fiche(s) trouvée(s)</Text>
       </Box>
     ),
     localization: {
@@ -269,16 +279,14 @@ renderTopToolbarCustomActions: ({ table: t }) => (
     },
   });
 
-  //  enregistre un getter direct sur table.getState() ──
-  // Pas de copie intermédiaire — lit l'état réel au moment du clic "Sauvegarder"
   useEffect(() => {
-  if (tableStateGetterRef) {
-    tableStateGetterRef.current = () => ({
-      columnVisibility: colVisRef.current,   // ← ref React, toujours à jour
-      columnSizing:     colSizeRef.current,  // ← ref React, toujours à jour
-    });
-  }
-}, [tableStateGetterRef]); // ← plus de dépendance sur table
+    if (tableStateGetterRef) {
+      tableStateGetterRef.current = () => ({
+        columnVisibility: colVisRef.current,
+        columnSizing:     colSizeRef.current,
+      });
+    }
+  }, [tableStateGetterRef]);
 
   const deleteLabel = deleteRecord
     ? `${deleteRecord.prenomAgent ?? ''} ${deleteRecord.nomAgent ?? ''} — N°${deleteRecord.id}`.trim()

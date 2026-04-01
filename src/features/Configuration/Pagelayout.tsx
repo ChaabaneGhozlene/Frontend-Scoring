@@ -10,13 +10,14 @@ interface Props {
   actions?: ReactNode   // boutons dans le coin droit du header
   toolbar?: ReactNode   // barre sous le header (sélecteur, mini-boutons…)
   children: ReactNode
+  icon?: ReactNode 
 }
 
 /**
  * Enveloppe commune à toutes les pages Settings.
  * Fournit header + toast + toolbar optionnelle + zone de contenu.
  */
-const PageLayout: FC<Props> = ({ title, crumb, toast, actions, toolbar, children }) => (
+const PageLayout: FC<Props> = ({ title, crumb, toast, actions, toolbar, children, icon}) => (
   <div style={pageWrap}>
 
     {/* ── Toast ──────────────────────────────────────────────────────── */}
@@ -29,7 +30,14 @@ const PageLayout: FC<Props> = ({ title, crumb, toast, actions, toolbar, children
     {/* ── Header ─────────────────────────────────────────────────────── */}
     <div style={pageHeader}>
       <div style={headerLeft}>
-        <div style={gearIcon}>⚙️</div>
+        <div style={{
+          ...gearIcon,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          {icon ?? '⚙️'}
+        </div>
         <div>
           <div style={pageTitle}>{title}</div>
           <div style={pageCrumb}>{crumb}</div>

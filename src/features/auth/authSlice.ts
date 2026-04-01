@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit'
-import type { PayloadAction } from '@reduxjs/toolkit'          // ← import type
+import type { PayloadAction } from '@reduxjs/toolkit'          
 import { jwtDecode }   from 'jwt-decode'
-import type { AuthState, AuthUser, LoginRequest, LoginResponse } from './authTypes'  // ← import type
+import type { AuthState, AuthUser, LoginRequest, LoginResponse } from './authTypes'  
 
 const storedToken = localStorage.getItem('token')
 const storedExpiresAt = localStorage.getItem('expiresAt')
@@ -10,7 +10,7 @@ let storedUser: AuthUser | null = null
 let validToken: string | null = null
 let validExpiresAt: string | null = null
 
-// ✅ Vérifier si le token est encore valide
+//  Vérifier si le token est encore valide
 if (storedToken && storedExpiresAt && new Date(storedExpiresAt).getTime() > Date.now()) {
   try {
     storedUser = jwtDecode<AuthUser>(storedToken)
