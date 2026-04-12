@@ -49,6 +49,13 @@ export const getAgentReport = async (lsId: number, recordDataId?: number): Promi
   })
   return data
 }
+export const getAgent = async (recordDataId: number): Promise<AgentReportDto> => {
+  const { data } = await axiosInstance.get<AgentReportDto>(
+    `${BASE}/agent-report`,
+    { params: { recordDataId } }
+  );
+  return data;
+};
 
 // ── View Configs ──────────────────────────────────────────────────────────────
 const EVAL_GROUPE  = 2

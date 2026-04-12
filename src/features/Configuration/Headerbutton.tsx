@@ -1,5 +1,5 @@
 import type { FC, ReactNode } from 'react'
-import { actionBtn, actionLbl } from './Pagestyles'
+import { actionBtn, actionLbl } from '../Pagestyles'
 
 interface Props {
   label:   string

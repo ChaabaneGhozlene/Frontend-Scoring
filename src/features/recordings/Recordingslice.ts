@@ -2,11 +2,11 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type {
   RecordingsState,
   Recording,
-  UserFilter,
+
   ViewConfig,
   ColumnFilter,
   FetchRecordingsPayload,
-  CreateFilterPayload,
+ 
   SaveViewConfigPayload,
   UpdateViewConfigPayload,
 } from './Recordingstypes';
@@ -23,7 +23,7 @@ const initialState: RecordingsState = {
 
   columnFilters:        [],   // ← AJOUT
 
-  filters:              [],
+
   filtersLoading:       false,
   selectedFilterId:     null,
 
@@ -85,40 +85,7 @@ const recordingsSlice = createSlice({
       state.pageSize = action.payload;
     },
 
-    fetchFiltersRequest(state) { state.filtersLoading = true; },
-    fetchFiltersSuccess(state, action: PayloadAction<UserFilter[]>) {
-      state.filtersLoading = false;
-      state.filters        = action.payload;
-    },
-    fetchFiltersFailure(state, action: PayloadAction<string>) {
-      state.filtersLoading = false;
-      state.error          = action.payload;
-    },
-    createFilterRequest(state, _action: PayloadAction<CreateFilterPayload>) {
-      state.filtersLoading = true;
-    },
-    createFilterSuccess(state, action: PayloadAction<UserFilter>) {
-      state.filtersLoading = false;
-      state.filters.push(action.payload);
-      state.selectedFilterId = action.payload.id
-    },
-    createFilterFailure(state, action: PayloadAction<string>) {
-      state.filtersLoading = false;
-      state.error          = action.payload;
-    },
-    deleteFilterRequest(state, _action: PayloadAction<number>) {
-      state.filtersLoading = true;
-    },
-    deleteFilterSuccess(state, action: PayloadAction<number>) {
-      state.filtersLoading   = false;
-      state.filters          = state.filters.filter((f) => f.id !== action.payload);
-      if (state.selectedFilterId === action.payload) state.selectedFilterId = null;
-    },
-    deleteFilterFailure(state, action: PayloadAction<string>) {
-      state.filtersLoading = false;
-      state.error          = action.payload;
-    },
-
+   
     fetchViewConfigsRequest(state) { state.viewConfigsLoading = true; },
     fetchViewConfigsSuccess(state, action: PayloadAction<ViewConfig[]>) {
       state.viewConfigsLoading = false;
@@ -178,15 +145,7 @@ export const {
   setSelectedFilterId,
   setSelectedViewConfigId,
   setPageSize,
-  fetchFiltersRequest,
-  fetchFiltersSuccess,
-  fetchFiltersFailure,
-  createFilterRequest,
-  createFilterSuccess,
-  createFilterFailure,
-  deleteFilterRequest,
-  deleteFilterSuccess,
-  deleteFilterFailure,
+
   fetchViewConfigsRequest,
   fetchViewConfigsSuccess,
   fetchViewConfigsFailure,

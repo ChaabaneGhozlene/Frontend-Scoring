@@ -22,10 +22,10 @@ import type { AppDispatch, RootState } from '../../../../app/store'
 
 // ── Shared ────────────────────────────────────────────────────────────────────
 
-import { badgeLbl, infoBadge, pillActive, pillInactive, selBadge, tableWrap, toolbarBar, toolbarBtn, toolbarBtnsWrap, toolbarLbl, toolbarSelect } from '../../Pagestyles'
+import { badgeLbl, infoBadge, pillActive, pillInactive, selBadge, tableWrap, toolbarBar, toolbarBtn, toolbarBtnsWrap, toolbarLbl, toolbarSelect } from '../../../Pagestyles'
 import HeaderButton, { IconDelete, IconEdit, IconPlus } from '../../Headerbutton'
-import { getSharedTableProps, singleSelect, tableGroupingHint } from '../../Tableconfig'
-import PageLayout from '../../Pagelayout'
+import { getSharedTableProps, singleSelect, tableGroupingHint } from '../../../Tableconfig'
+import PageLayout from '../../../Pagelayout'
 import { useSettingsPage } from '../../Usesettingspage'
 
 

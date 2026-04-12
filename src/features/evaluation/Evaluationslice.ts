@@ -6,8 +6,8 @@ import type {
   EvaluationState, LsFicheDto, LsSurveyDto,
   SurveyItemDto, AgentReportDto,
   UpdateSurveyDto,
-  EvaluationFilterDto,
-  CreateEvalFilterAndApplyPayload,
+  
+  
   EvalViewConfig,
   UpdateEvalViewConfigPayload,
   CreateEvalViewConfigDto,
@@ -58,7 +58,7 @@ columnFilters: [] as ColumnFilter[],
   deleteError:   null,
 
   // Filtres
-  filters:          [],
+  
   filtersLoading:   false,
   filtersError:     null,
 
@@ -85,11 +85,6 @@ export interface FetchFichesSuccessPayload {
   pageSize:   number
 }
 
-// FIX: payload enrichi pour createEvalFilterSuccess
-export interface CreateEvalFilterSuccessPayload {
-  filter:     EvaluationFilterDto
-  applyAfter: boolean
-}
 
 const evaluationSlice = createSlice({
   name: 'evaluation',
@@ -221,45 +216,10 @@ fetchSurveysRequest: (s, _a: PayloadAction<{ lsId: number; recordDataId: number 
       s.deleteLoading = false; s.deleteError = a.payload
     },
 
-    // ── Filtres évaluation ────────────────────────────────────────────────────
-    fetchEvalFiltersRequest: (s) => {
-      s.filtersLoading = true; s.filtersError = null
-    },
-    fetchEvalFiltersSuccess: (s, a: PayloadAction<EvaluationFilterDto[]>) => {
-      s.filtersLoading = false; s.filters = a.payload
-    },
-    fetchEvalFiltersFailure: (s, a: PayloadAction<string>) => {
-      s.filtersLoading = false; s.filtersError = a.payload
-    },
+    
 
-    createEvalFilterRequest: (s, _a: PayloadAction<CreateEvalFilterAndApplyPayload>) => {
-      s.filtersLoading = true; s.filtersError = null
-    },
-
-    // FIX: payload enrichi — on stocke applyAfter dans le state pour que
-    // le useEffect du toolbar puisse décider de déclencher ou non le fetch
-    createEvalFilterSuccess: (s, a: PayloadAction<CreateEvalFilterSuccessPayload>) => {
-      s.filtersLoading     = false
-      s.filters.push(a.payload.filter)
-      s.selectedFilterId   = a.payload.filter.id
-      s.pendingApplyFilter = a.payload.applyAfter  // ← clé du fix
-    },
-
-    createEvalFilterFailure: (s, a: PayloadAction<string>) => {
-      s.filtersLoading = false; s.filtersError = a.payload
-    },
-
-    deleteEvalFilterRequest: (s, _a: PayloadAction<number>) => {
-      s.filtersLoading = true; s.filtersError = null
-    },
-    deleteEvalFilterSuccess: (s, a: PayloadAction<number>) => {
-      s.filtersLoading = false
-      s.filters = s.filters.filter((f) => f.id !== a.payload)
-      if (s.selectedFilterId === a.payload) s.selectedFilterId = null
-    },
-    deleteEvalFilterFailure: (s, a: PayloadAction<string>) => {
-      s.filtersLoading = false; s.filtersError = a.payload
-    },
+   
+    
     // ── View Configs ──────────────────────────────────────────────────────────
     setSelectedViewConfigId: (s, a: PayloadAction<number | null>) => {
       s.selectedViewConfigId = a.payload
@@ -333,9 +293,7 @@ export const {
   fetchAgentReportRequest, fetchAgentReportSuccess, fetchAgentReportFailure, clearAgentReport,
   deleteSurveyRequest, deleteSurveySuccess, deleteSurveyFailure,
   deleteFicheRequest, deleteFicheSuccess, deleteFicheFailure,
-  fetchEvalFiltersRequest, fetchEvalFiltersSuccess, fetchEvalFiltersFailure,
-  createEvalFilterRequest, createEvalFilterSuccess, createEvalFilterFailure,
-  deleteEvalFilterRequest, deleteEvalFilterSuccess, deleteEvalFilterFailure,setSelectedViewConfigId,
+ setSelectedViewConfigId,
   fetchViewConfigsRequest, fetchViewConfigsSuccess, fetchViewConfigsFailure,
   saveViewConfigRequest,   saveViewConfigSuccess,   saveViewConfigFailure,
   updateViewConfigRequest, updateViewConfigSuccess, updateViewConfigFailure,

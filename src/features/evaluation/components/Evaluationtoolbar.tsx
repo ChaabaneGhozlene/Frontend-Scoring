@@ -5,15 +5,15 @@ import {
   setStartDate, setEndDate,
   fetchFichesRequest,
   clearPendingApplyFilter,
-  deleteViewConfigRequest,      // ← maintenant exporté
+  deleteViewConfigRequest,      
 } from '../Evaluationslice'
 import Toolbar from '../../Toolbar'
 import type { EvalViewConfig } from '../Evaluationtypes'
 
 interface Props {
-  onOpenSaveView:     () => void   // ← nouvelle vue
-  onOpenUpdateView:   () => void   // ← sauvegarder vue existante
-  onSelectViewConfig: (id: number | null) => void  // ← restauration complète
+  onOpenSaveView:     () => void   
+  onOpenUpdateView:   () => void   
+  onSelectViewConfig: (id: number | null) => void  
 }
 
 const toStr = (d: Date) =>

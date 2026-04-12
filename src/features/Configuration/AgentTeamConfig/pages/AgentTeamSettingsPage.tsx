@@ -12,10 +12,10 @@ import ConfirmModal     from '../components/ConfirmModal'
 
 // ── Shared ────────────────────────────────────────────────────────────────────
 
-import { badgeLbl, infoBadge, selBadge, tableWrap, toolbarBar, toolbarBtn, toolbarBtnsWrap, toolbarLbl, toolbarSelect } from '../../Pagestyles'
-import PageLayout from '../../Pagelayout'
+import { badgeLbl, infoBadge, selBadge, tableWrap, toolbarBar, toolbarBtn, toolbarBtnsWrap, toolbarLbl, toolbarSelect } from '../../../Pagestyles'
+import PageLayout from '../../../Pagelayout'
 import HeaderButton, { IconDelete } from '../../Headerbutton'
-import { getSharedTableProps, singleSelect, tableGroupingHint } from '../../Tableconfig'
+import { getSharedTableProps, singleSelect, tableGroupingHint } from '../../../Tableconfig'
 import { useSettingsPage } from '../../Usesettingspage'
 
 

@@ -13,6 +13,8 @@ import PublicRoute from "../features/auth/components/PublicRoute";
 import EvaluationPage from "../features/evaluation/pages/Evaluationpage";
 import UsersPage from "../features/Users/page/Userspage";
 import EvalPage from "../features/eval/page/Evalpage";
+import DashboardBuilder from "../features/statistique/DashboardBuilder";
+
 const AppRouter = () => {
   return (
     <BrowserRouter>
@@ -43,7 +45,7 @@ const AppRouter = () => {
             <Route path={ROUTES.EVALUATIONS_LIST} element={<EvaluationPage />} />
             <Route path={ROUTES.EVALUATION} element={<EvalPage />} />
 
-                        <Route path={ROUTES.USERS} element={<UsersPage />} />
+<Route path={ROUTES.STATISTICS} element={<DashboardBuilder />} />
 
           </Route>
         </Route>

@@ -8,10 +8,10 @@ import type { AgentMailConfig } from '../AgentMailConfigTypes'
 import EditEmailModal from '../components/EditEmailModal'
 
 // ── Shared ────────────────────────────────────────────────────────────────────
-import {  selBadge, tableWrap } from '../../Pagestyles'
-import PageLayout from '../../Pagelayout'
+import {  selBadge, tableWrap } from '../../../Pagestyles'
+import PageLayout from '../../../Pagelayout'
 import HeaderButton, { IconEdit } from '../../Headerbutton'
-import { getSharedTableProps, singleSelect, tableGroupingHint } from '../../Tableconfig'
+import { getSharedTableProps, singleSelect, tableGroupingHint } from '../../../Tableconfig'
 import { useSettingsPage } from '../../Usesettingspage' 
 const columns: MRT_ColumnDef<AgentMailConfig>[] = [
   { accessorKey: 'id',    header: 'Id',    size: 120 },

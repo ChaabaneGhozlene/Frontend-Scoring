@@ -9,7 +9,7 @@ import { IconAlertCircle } from '@tabler/icons-react'
 import type { RecordRow } from '../Evalslice'
 import { setSelectedRecordId, setPage, setPageSize } from '../Evalslice'
 import { FETCH_RECORDS_REQUEST } from '../Evalsaga'
-import { getSharedTableProps } from '../../Configuration/Tableconfig'
+import { getSharedTableProps } from '../../Tableconfig'
 import { exportRecordsBlob } from '../Evalservice'
 import type { RootState } from '../../../app/store'
 
@@ -30,7 +30,6 @@ const EvaluationTable = ({ onRowDoubleClick }: Props) => {
 
   const [columnFilters, setColumnFilters] = useState<any[]>([])
   const [globalFilter,  setGlobalFilter]  = useState('')
-  const [sorting,       setSorting]       = useState<any[]>([])
   const [rowSelection,  setRowSelection]  = useState<Record<string, boolean>>({})
 
 const columns = useMemo<MRT_ColumnDef<RecordRow>[]>(() => [
@@ -111,25 +110,58 @@ filterId: selectedAgentOid.length > 0 ? selectedAgentOid.join(',') : null,
 
     // ── Server-side pagination ──────────────────────────
     manualPagination: true,
+      manualFiltering:  true,   // ← AJOUTER
+  manualSorting:    true, 
     rowCount:         totalCount,
     state: {
       pagination:    { pageIndex: page - 1, pageSize },
       columnFilters,
       globalFilter,
-      sorting,
+      
       rowSelection,
       isLoading:     loadingRecords,
     },
-    onPaginationChange: (updater) => {
-      const prev = { pageIndex: page - 1, pageSize }
-      const next = typeof updater === 'function' ? updater(prev) : updater
-      dispatch(setPage(next.pageIndex + 1))
-      dispatch(setPageSize(next.pageSize))
-      dispatch({ type: FETCH_RECORDS_REQUEST })
-    },
-    onColumnFiltersChange: setColumnFilters,
-    onGlobalFilterChange:  setGlobalFilter,
-    onSortingChange:       setSorting,
+onPaginationChange: (updater) => {
+  const prev = { pageIndex: page - 1, pageSize }
+  const next = typeof updater === 'function' ? updater(prev) : updater
+
+  const newPage     = next.pageIndex + 1
+  const newPageSize = next.pageSize
+
+  // Ne dispatcher setPageSize que si la taille change vraiment
+  if (newPageSize !== pageSize) {
+    dispatch(setPageSize(newPageSize))
+  }
+
+  // Toujours mettre à jour la page
+  dispatch(setPage(newPage))
+
+  dispatch({
+    type:    FETCH_RECORDS_REQUEST,
+    payload: { page: newPage, pageSize: newPageSize,
+            columnFilters, // ← manquait ici
+      globalFilter,  // ← manquait ici aussi
+     },
+  })
+},
+    onColumnFiltersChange: (updater) => {
+  const next = typeof updater === 'function' ? updater(columnFilters) : updater
+  setColumnFilters(next)
+  dispatch(setPage(1))
+  dispatch({
+    type:    FETCH_RECORDS_REQUEST,
+    payload: { page: 1, pageSize, columnFilters: next },
+  })
+},
+onGlobalFilterChange: (value) => {
+  const val = value ?? ''
+  setGlobalFilter(val)
+  dispatch(setPage(1))
+  dispatch({
+    type:    FETCH_RECORDS_REQUEST,
+    payload: { page: 1, pageSize, columnFilters, globalFilter: val },
+  })
+},    
 
     // ── Row selection ───────────────────────────────────
     onRowSelectionChange: (updater) => {
@@ -167,13 +199,7 @@ filterId: selectedAgentOid.length > 0 ? selectedAgentOid.join(',') : null,
     // ── Grouping hint ───────────────────────────────────
     renderDetailPanel: undefined,
 
-    mantineTableProps: {
-      striped:       true,
-      highlightOnHover: true,
-      withBorder:    true,
-      withColumnBorders: true,
-      fontSize:      'xs',
-    },
+    
 
     mantineTableHeadCellProps: {
       style: { fontWeight: 600, fontSize: 12, whiteSpace: 'nowrap' },

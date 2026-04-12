@@ -5,8 +5,11 @@
 export interface LsFicheDto {
   id:           number
   agent:        string
+  lsId?:        number   
+
   agentOid:     string
   agentId:      number
+    auditorName:  string   
   auditor:      number
   startPeriode: string
   endPeriode:   string
@@ -143,7 +146,7 @@ export interface EvaluationState {
   // Le toolbar l'observe via useEffect et déclenche le fetch, puis le remet à false
   pendingApplyFilter: boolean
 
-  filters:        EvaluationFilterDto[]
+ 
   filtersLoading: boolean
   filtersError:   string | null
 
@@ -153,13 +156,6 @@ export interface EvaluationState {
   selectedViewConfigId: number | null;
 }
 
-export interface EvaluationFilterDto {
-  id:         number
-  name:       string
-  expression: string
-  sqlWhere:   string
-  type:       number
-}
 
 export interface CreateEvaluationFilterDto {
   name:       string

@@ -1,7 +1,7 @@
 import type { MRT_TableOptions, MRT_RowSelectionState } from 'mantine-react-table'
 import { Box, Button, Text } from '@mantine/core'
 import { IconDownload } from '@tabler/icons-react'
-import { exportRows, exportAll, type ExportBlobParams } from '../exportUtils'
+import { exportAll, exportRows, type ExportBlobParams } from './exportUtils'
 
 export function getSharedTableProps<T extends object>(
   totalCount?: number,
@@ -34,6 +34,12 @@ export function getSharedTableProps<T extends object>(
 
     mantinePaginationProps: {
       rowsPerPageOptions: ['10', '15', '25', '50'],
+    },
+  mantineTableProps: {
+      striped:           true,
+      highlightOnHover:  true,
+      withBorder:        true,
+      withColumnBorders: true,
     },
 
     localization: {

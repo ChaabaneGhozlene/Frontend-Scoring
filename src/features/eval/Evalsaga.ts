@@ -16,6 +16,7 @@ import {
   setCategories,
   setCallReasons,
   setCampaigns,
+  setSelectedRecordId,
 } from './Evalslice'
 
 import type { RootState } from '../../app/store'
@@ -67,22 +68,60 @@ function* loadReferenceDataSaga() {
 }
 
 // ── Saga: fetch records ────────────────────────────────────────────────────
-function* fetchRecordsSaga() {
+function* fetchRecordsSaga(action: any) {
   yield put(fetchRecordsStart())
   try {
     const state: RootState = yield select()
     const ev = state.eval
 
+    // ✅ Utiliser payload si présent, sinon fallback sur le store
+    const page     = action?.payload?.page     ?? ev.page
+    const pageSize = action?.payload?.pageSize ?? ev.pageSize
+    const columnFilters = action?.payload?.columnFilters ?? []  // ← ajoute
+
     const res = (yield call(fetchRecords, {
       agentOids: ev.selectedAgentOid.length > 0 ? ev.selectedAgentOid : undefined,
       dateDebut: ev.startDate ?? undefined,
       dateFin:   ev.endDate   ?? undefined,
-      page:      ev.page,
-      pageSize:  ev.pageSize,
+      page,       
+      pageSize,  
+            columnFilters, 
+
     })) as Awaited<ReturnType<typeof fetchRecords>>
 
+    console.log('📦 Premier record brut:', res.data.records[0])
+
+    const records = res.data.records.map((r: any) => ({
+      id:                  r.id,
+      agentId:             r.agentId             ?? null,
+      agentOid:            r.agentOid            ?? null,
+      nomAgent:            r.nomAgent            ?? null,
+      prenomAgent:         r.prenomAgent         ?? null,
+      campaignDescription: r.campaignDescription ?? null,
+      callLocalTime:       r.callLocalTime       ?? null,
+      callLocalTimeString: r.callLocalTimeString ?? null,
+      heureAppel:          r.heureAppel          ?? null,
+      recordDate:          r.recordDate          ?? null,
+      statut:              r.statut              ?? null,
+      detailStatut:        r.detailStatut        ?? null,
+      statusRequal:        r.statusRequal        ?? null,
+      statusDescription:   r.statusDescription   ?? null,
+      callTypeDescription: r.callTypeDescription ?? null,
+      numeroTel:           r.numeroTel           ?? null,
+      duration:            r.duration            ?? null,
+      hasEvaluation:       r.hasEvaluation       ?? false,
+      hasHistory:          r.hasHistory          ?? false,
+      hasHistoryScreen:    r.hasHistoryScreen    ?? false,
+      lsId:                r.lsId               ?? null,
+      typeRequalif:        r.typeRequalif        ?? null,
+      recIdLink:           r.recIdLink           ?? null,
+      campaignId:          r.campaignId          ?? null,
+      campaignName:        r.campaignName        ?? null,
+      isSaved:             r.isSaved             ?? undefined,
+    }))
+
     yield put(fetchRecordsSuccess({
-      records:    res.data.records,
+      records,
       totalCount: res.data.totalCount ?? res.data.length ?? 0,
     }))
   } catch (err: any) {
@@ -95,13 +134,32 @@ function* fetchRecordsSaga() {
 
 // ── Saga: open evaluation ──────────────────────────────────────────────────
 function* openEvalSaga(action: PayloadAction<number>) {
+  // ✅ Stocker le recordId sélectionné
+  yield put(setSelectedRecordId(action.payload))
   yield put(openEvalStart())
+
   try {
+    // ✅ Récupérer le record depuis le store AVANT l'appel API
+    const state: RootState = yield select()
+    const record = state.eval.records.find(r => r.id === action.payload)
+
     const res: Awaited<ReturnType<typeof openEvaluation>> = yield call(
       openEvaluation,
       action.payload
     )
-    yield put(openEvalSuccess(res.data))
+
+    // ✅ Fusionner : données API + données du record en store
+    const enrichedData = {
+      ...res.data,
+      // Si le back ne renvoie pas ces champs, on les prend depuis le RecordRow
+      recordDate: res.data.recordDate ?? record?.recordDate ?? null,
+      callIndex:  res.data.callIndex  ?? record?.recIdLink?.toString() ?? null,
+      auditor:    res.data.auditor    ?? null,
+    }
+
+    console.log('✅ openEval enriched:', enrichedData)
+    yield put(openEvalSuccess(enrichedData))
+
   } catch (err: any) {
     const message = err?.response?.data?.message ?? "Impossible d'ouvrir l'évaluation."
     yield put(openEvalFailure(message))
@@ -109,8 +167,8 @@ function* openEvalSaga(action: PayloadAction<number>) {
 }
 
 // ── Saga: save evaluation ──────────────────────────────────────────────────
+// ── Saga: save evaluation ──────────────────────────────────────────────────
 function* saveEvalSaga(action: PayloadAction<SaveEvaluationDto>) {
-  // ✅ FIX : log pour vérifier que itemId est bien présent (pas undefined)
   console.log('💾 saveEval payload:', JSON.stringify(action.payload, null, 2))
 
   yield put(saveEvalStart())
@@ -123,8 +181,8 @@ function* saveEvalSaga(action: PayloadAction<SaveEvaluationDto>) {
       score:   res.data.score,
       message: res.data.message,
     }))
-    // Recharger la liste après sauvegarde
-    yield call(fetchRecordsSaga)
+    // ✅ Dispatcher l'action au lieu d'appeler directement la saga
+    yield put({ type: FETCH_RECORDS_REQUEST })
   } catch (err: any) {
     yield put(saveEvalFailure(
       err?.response?.data?.message ?? 'Erreur lors de la sauvegarde.'

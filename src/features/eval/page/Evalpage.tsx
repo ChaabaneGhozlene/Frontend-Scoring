@@ -1,23 +1,23 @@
 // features/eval/page/Evalpage.tsx
-import { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { useEffect, useRef, useState } from 'react'
+import { useDispatch, useSelector, useStore } from 'react-redux'
 import {
   Stack, Paper, Group, Text, Breadcrumbs, Anchor,
   Notification, LoadingOverlay,
 } from '@mantine/core'
 import { IconCheck, IconClipboardList } from '@tabler/icons-react'
-import SurveyEditModal        from '../componentsEval/Evalsurveymodal'
 import EvaluationTable        from '../componentsEval/Evaltable'
 import EvaluationToolbar      from '../componentsEval/Evaltoolbar'
-import { clearMessages, closeEval } from '../Evalslice'
-import { clearAgentReport, fetchAgentReportRequest } from '../../evaluation/Evaluationslice'
+import { clearMessages, closeEval, setStartDate, setEndDate } from '../Evalslice'
+import { fetchAgentReportRequest } from '../../evaluation/Evaluationslice'
 import { FETCH_RECORDS_REQUEST, LOAD_REFERENCE_DATA, OPEN_EVAL_REQUEST, SAVE_EVAL_REQUEST } from '../Evalsaga'
 import type { RootState } from '../../../app/store'
-
+import { streamAudioUrl } from '../Evalservice'
+import SurveyModalBase from '../componentsEval/Surveymodalbase'
 const EvalPage = () => {
   const dispatch = useDispatch()
+  const store    = useStore()   // ← lit le state frais au moment du clic, sans closure stale
 
-  // ── Store s.eval ──────────────────────────────────────────
   const {
     selectedRecordId,
     successMessage,
@@ -28,15 +28,36 @@ const EvalPage = () => {
     errorEval,
     categories,
     callReasons,
+   
   } = useSelector((s: RootState) => s.eval)
 
-  const [reportOpen, setReportOpen] = useState(false)
+  const [reportOpen,   setReportOpen]   = useState(false)
+  const [audioUrl,     setAudioUrl]     = useState<string | null>(null)
+  const [audioLoading, setAudioLoading] = useState(false)
+
+  const selectedRecord = useSelector((s: RootState) =>
+    s.eval.records.find(r => r.id === s.eval.selectedRecordId)
+  )
 
   // ── Init ──────────────────────────────────────────────────
+ 
+useEffect(() => {
+  const today = new Date().toISOString().split('T')[0]
+  dispatch(setStartDate(today))
+  dispatch(setEndDate(today))
+  dispatch({ type: LOAD_REFERENCE_DATA })
+  dispatch({ type: FETCH_RECORDS_REQUEST })
+}, [dispatch])
+  // ── Réinitialiser l'audio à la fermeture du modal ─────────
   useEffect(() => {
-    dispatch({ type: LOAD_REFERENCE_DATA })
-    dispatch({ type: FETCH_RECORDS_REQUEST })
-  }, [dispatch])
+    if (!isSurveyOpen) {
+      setAudioUrl(prev => {
+        if (prev) URL.revokeObjectURL(prev)
+        return null
+      })
+      setAudioLoading(false)
+    }
+  }, [isSurveyOpen])
 
   // ── Auto-hide success ─────────────────────────────────────
   useEffect(() => {
@@ -55,6 +76,43 @@ const EvalPage = () => {
     dispatch(fetchAgentReportRequest(selectedRecordId))
     setReportOpen(true)
   }
+
+  // Ref vers la fonction interne de la toolbar (popup toolbar)
+  const toolbarListenRef = useRef<(() => void) | null>(null)
+
+  // ── handleListen : toolbar uniquement (ouvre le popup) ────
+  const handleListen = () => {
+    toolbarListenRef.current?.()
+  }
+
+  // ── handleListenInModal : audio inline dans le modal ──────
+ // ── handleListenInModal : audio inline dans le modal ──────
+const handleListenInModal = async () => {
+  const freshState = (store.getState() as RootState).eval
+  const recordId = freshState.selectedRecordId   // ← variable locale correcte
+
+  console.log('▶️ appelé, recordId:', recordId)
+
+  if (!recordId) {
+    console.warn('❌ selectedRecordId null dans le store')
+    return
+  }
+
+  setAudioLoading(true)
+  try {
+     console.log('▶️ 1. handleListenInModal appelé')
+    const blobUrl = await streamAudioUrl(recordId)  // ← on utilise recordId ici
+    console.log('✅ blobUrl:', blobUrl)
+    setAudioUrl(prev => {
+      if (prev) URL.revokeObjectURL(prev)
+      return blobUrl
+    })
+  } catch (e) {
+    console.error('💥', e)
+  } finally {
+    setAudioLoading(false)
+  }
+}
 
   // ── Convertir EvalGridRow[] → SurveyItemDto[] ─────────────
   const surveyItems = openEval?.gridRows.map(r => ({
@@ -106,6 +164,8 @@ const EvalPage = () => {
       <EvaluationToolbar
         selectedRecordId={selectedRecordId}
         onOpenReport={handleOpenReport}
+        onListen={handleListen}
+        onRegisterListen={(fn) => { toolbarListenRef.current = fn }}
       />
 
       {/* Table */}
@@ -115,25 +175,19 @@ const EvalPage = () => {
       </Paper>
 
       {/* Modal évaluation */}
-      <SurveyEditModal
+      <SurveyModalBase
+      resetOnOpen={true} 
         opened={isSurveyOpen}
         onClose={() => dispatch(closeEval())}
         onSave={(dto) => {
-  const mappedItems = dto.items.map(item => {
-    const gridRow = openEval?.gridRows.find(r => r.id === item.id)
-    
-    // ✅ LOG TEMPORAIRE — à retirer après correction
-    console.log('item.id=', item.id, 
-                'gridRow?.templateItemId=', gridRow?.templateItemId,
-                'value=', item.value)
-    
-    return {
-      itemId: gridRow?.templateItemId ?? item.id,
-      value:  item.value,
-      memo:   item.memo ?? '',
-    }
-  })
-
+          const mappedItems = dto.items.map(item => {
+            const gridRow = openEval?.gridRows.find(r => r.id === item.id)
+            return {
+              itemId: gridRow?.templateItemId ?? item.id,
+              value:  item.value,
+              memo:   item.memo ?? '',
+            }
+          })
           dispatch({
             type: SAVE_EVAL_REQUEST,
             payload: {
@@ -155,6 +209,13 @@ const EvalPage = () => {
         surveyLabel={openEval ? `Survey #${openEval.surveyId}` : ''}
         categories={categories}
         callReasons={callReasons}
+        recordDate={openEval?.recordDate ?? selectedRecord?.recordDate ?? undefined}
+        indice={openEval?.callIndex ?? selectedRecord?.recIdLink?.toString() ?? undefined}
+        date={openEval?.evalDate}
+        auditeur={openEval?.auditor}
+        audioUrl={audioUrl}
+        audioLoading={audioLoading}
+        onListen={handleListenInModal}
       />
 
     </Stack>

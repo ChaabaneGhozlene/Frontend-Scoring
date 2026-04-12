@@ -41,11 +41,9 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     label: 'Statistiques',
+    route: ROUTES.STATISTICS,
     roles: ['SuperAdmin','SuperUser','Admin','Supervisor'],
-    dropdown: [
-      { label: 'Vue Générale',                route: ROUTES.STATISTICS , roles: ['SuperAdmin','SuperUser','Admin','Supervisor'] },
-      { label: 'Statistiques Personnalisées', route: ROUTES.STATISTICS_CUSTOM, roles: ['SuperAdmin','SuperUser','Admin','Supervisor'] },
-    ],
+   
   },
   {
     label: 'Configuration',

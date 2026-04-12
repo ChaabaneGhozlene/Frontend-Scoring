@@ -6,7 +6,7 @@ import { saveViewConfigRequest } from '../Recordingslice'
 import type { RootState } from '../../../app/store';
 import type { ViewLayoutState, ColumnFilter } from '../Recordingstypes'; // ← plus de ColumnFiltersState
 import {
-  fetchRecordingsRequest, fetchFiltersRequest,
+  fetchRecordingsRequest, 
   fetchViewConfigsRequest, updateViewConfigRequest,
   setStartDate, setEndDate, setSelectedFilterId,
   setSelectedViewConfigId, setColumnFilters, setPageSize,
@@ -42,7 +42,6 @@ const RecordingsPage = () => {
       columnSizing:     colState.columnSizing     ?? {},
       dateDebut:        dateDebut,
       dateFin:          dateFin,
-      selectedFilterId: selectedFilterId ?? null,
       columnFilters:    columnFilters    ?? [],
       pageSize,
     };
@@ -63,11 +62,11 @@ const RecordingsPage = () => {
   }, [selectedViewConfigId, viewConfigs]);
 
   useEffect(() => {
-    dispatch(fetchFiltersRequest());
+    
     dispatch(fetchViewConfigsRequest());
     dispatch(fetchRecordingsRequest({
       dateDebut, dateFin,
-      filterId: selectedFilterId,
+      
       page: 1, pageSize, columnFilters,
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -120,7 +119,6 @@ const RecordingsPage = () => {
       if (layout.dateDebut) dispatch(setStartDate(layout.dateDebut));
       if (layout.dateFin)   dispatch(setEndDate(layout.dateFin));
 
-      dispatch(setSelectedFilterId(layout.selectedFilterId ?? null));
 
       const filters: ColumnFilter[] = layout.columnFilters ?? [];
       dispatch(setColumnFilters(filters));
@@ -130,7 +128,6 @@ const RecordingsPage = () => {
       dispatch(fetchRecordingsRequest({
         dateDebut:     layout.dateDebut  ?? dateDebut,
         dateFin:       layout.dateFin    ?? dateFin,
-        filterId:      layout.selectedFilterId ?? null,
         columnFilters: filters,
         page:          1,
         pageSize:      layout.pageSize   ?? pageSize,

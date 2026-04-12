@@ -76,6 +76,8 @@ function* handleFetchRecordings(
         totalCount = (r['totalCount'] as number) ?? data.length;
         page = (r['page'] as number) ?? 1;
         pageSize = (r['pageSize'] as number) ?? 15;
+          console.log('[Saga] sample record:', JSON.stringify(data[0], null, 2));
+
       }
     }
 

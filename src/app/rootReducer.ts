@@ -8,6 +8,9 @@ import agentMailConfigReducer from '../features/Configuration/AgentMailConfig/Ag
 import evaluationReducer from '../features/evaluation/Evaluationslice'
 import usersReducer from '../features/Users/userSlice'
 import evalReducer from   '../features/eval/Evalslice'
+import statistiqueReducer    from '../features/statistique/Statistiqueslice'
+import dashboardBuilderReducer from '../features/statistique/DashboardSlice'
+
 const rootReducer = combineReducers({
   auth:      authReducer,
   recordings: recordingsReducer,
@@ -19,6 +22,11 @@ const rootReducer = combineReducers({
     eval:evalReducer,
 
   Users: usersReducer,
+    statistique:     statistiqueReducer,
+        dashboardBuilder: dashboardBuilderReducer,  // ← ajouter
+
+
+
 })
 
 export default rootReducer

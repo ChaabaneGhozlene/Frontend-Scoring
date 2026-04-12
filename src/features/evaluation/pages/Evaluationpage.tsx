@@ -21,7 +21,7 @@ import {
 import EvaluationToolbar  from '../components/Evaluationtoolbar'
 import EvaluationTable    from '../components/Evaluationtable'
 import SurveysPanel       from '../components/Surveyspanel'
-import PageLayout         from '../../Configuration/Pagelayout'
+import PageLayout         from '../../Pagelayout'
 import HeaderButton       from '../../Configuration/Headerbutton'
 import SaveViewConfigModal from '../../Saveviewconfigmodal'  
 import { IconChecklist }  from '@tabler/icons-react'
@@ -68,17 +68,23 @@ const EvaluationPage = () => {
   const paramsRef = useRef({ dateDebut, dateFin, pageSize, selectedFilterId })
   paramsRef.current = { dateDebut, dateFin, pageSize, selectedFilterId }
 
-  useEffect(() => {
-    const { dateDebut, dateFin, pageSize, selectedFilterId } = paramsRef.current
-   
-    dispatch(fetchViewConfigsRequest())
-    dispatch(fetchFichesRequest({
-      dateDebut, dateFin,
-      filterId: selectedFilterId,
-      page: 1, pageSize,
-    }))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // ✅ APRÈS
+useEffect(() => {
+  const today = new Date().toISOString().split('T')[0]
+  dispatch(setStartDate(today))
+  dispatch(setEndDate(today))
+
+  const { pageSize, selectedFilterId } = paramsRef.current
+  dispatch(fetchViewConfigsRequest())
+  dispatch(fetchFichesRequest({
+    dateDebut: today,
+    dateFin:   today,
+    filterId:  selectedFilterId,
+    page:      1,
+    pageSize,
+  }))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [])
 
   // ── Construit le layoutJson complet ────────────────────────────────────────
   const buildFullLayout = useCallback((): string => {

@@ -16,28 +16,16 @@ export interface Recording {
   duration:             number | null;
   hasHistory:           boolean;
   hasEvaluation:        boolean;
-  HasHistoryScreen:     boolean;
+  hasHistoryScreen:     boolean;
   lsId:                 number | null;
   typeRequalif:         number | null;
   audioUrl?:            string;
+    screenFileName?:      string | null;  // ← AJOUTER : chemin réseau du screen recording
+
 }
 
-// ─── Filter / View Config ─────────────────────────────────────────────────────
 
-export interface UserFilter {
-  id:         number;
-  name:       string;
-  expression: string;
-  sqlWhere:   string;
-  type:       number;
-}
 
-export interface CreateFilterDto {
-  name:       string;
-  expression: string;
-  sqlWhere:   string;
-  type:       number;
-}
 
 export interface ViewConfig {
   id:         number;
@@ -99,7 +87,7 @@ export interface RecordingsState {
   loading:              boolean;
   error:                string | null;
   columnFilters:        ColumnFilter[];
-  filters:              UserFilter[];
+ 
   filtersLoading:       boolean;
   selectedFilterId:     number | null;
   viewConfigs:          ViewConfig[];
@@ -144,4 +132,12 @@ export interface SaveViewConfigPayload {
 export interface UpdateViewConfigPayload {
   id:         number;
   layoutJson: string;
+}
+// Interface TypeScript (déjà existante TraceActionDto)
+export interface TraceActionDto {
+  recordId:  number;
+  eventType: string;   // "Play" | "Pause" | "Stop" ...
+  position?: string;
+  duration?: string;
+  fileName?: string;
 }

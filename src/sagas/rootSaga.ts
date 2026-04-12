@@ -7,6 +7,8 @@ import { agentTeamSaga } from '../features/Configuration/AgentTeamConfig/AgentTe
 import evaluationSaga from '../features/evaluation/Evaluationsaga';
 import { usersSaga } from '../features/Users/usersaga';
 import { evalSaga } from '../features/eval/Evalsaga';
+import { statistiqueSaga } from '../features/statistique/Statistiquesaga';
+import { dashboardBuilderSaga } from '../features/statistique/DashboardSaga';
  function* rootSaga() {
   yield all([
     fork(authSaga),
@@ -18,6 +20,8 @@ import { evalSaga } from '../features/eval/Evalsaga';
     fork(evaluationSaga),
     fork(usersSaga),
     fork(evalSaga),
+    fork(statistiqueSaga),
+    fork(dashboardBuilderSaga),  // ← ajouter
 
   ]);
 }

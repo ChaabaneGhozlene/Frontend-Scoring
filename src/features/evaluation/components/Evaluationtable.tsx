@@ -1,6 +1,6 @@
 // components/evaluation/EvaluationTable.tsx
 import { useEffect, useMemo, useCallback, useState } from 'react'
-import { selectSurvey, setColumnFilters as setColumnFiltersAction } from '../Evaluationslice'
+import {  setColumnFilters as setColumnFiltersAction } from '../Evaluationslice'
 import type { MRT_ExpandedState } from 'mantine-react-table'
 
 import {
@@ -23,7 +23,7 @@ import {
 import type { LsFicheDto } from '../Evaluationtypes'
 import AgentReportModal from './Agentreportmodal'
 import EvaluationDeleteConfirmModal from './Evaluationdeleteconfirmmodal'
-import { getSharedTableProps, singleSelect } from '../../Configuration/Tableconfig'
+import { getSharedTableProps, singleSelect } from '../../Tableconfig'
 import { exportEvaluations } from '../Evaluationservice'
 
 interface EvaluationTableProps {
@@ -76,8 +76,7 @@ const buildColumns = (): MRT_ColumnDef<LsFicheDto>[] => [
     },
   },
   { accessorKey: 'modeleName',   header: 'Modèle',   size: 160 },
-  { accessorKey: 'auditor',      header: 'Auditeur', size: 100 },
-  { accessorKey: 'campaignName', header: 'Campagne', size: 180 },
+{ accessorKey: 'auditorName', header: 'Auditeur', size: 160, AggregatedCell: () => null },  { accessorKey: 'campaignName', header: 'Campagne', size: 180 },
 ]
 
 // ── Composant principal ────────────────────────────────────────────────────
@@ -129,6 +128,8 @@ const [expanded, setExpanded] = useState<MRT_ExpandedState>(true)
 
 useEffect(() => {
   if (openDeleteModal && selectedRow) {
+    
+    dispatch(fetchAgentReportRequest(selectedRow.id))
     setDeleteTarget(selectedRow)
     setDeleteOpen(true)
     dispatch(resetDeleteModal())

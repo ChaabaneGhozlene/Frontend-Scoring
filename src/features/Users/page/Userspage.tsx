@@ -11,10 +11,10 @@ import {
 } from '../userSlice'
 import type { CreateUserDto, UpdateUserDto, UserDto } from '../userTypes'
 import UserModal from '../components/userModal'
-import PageLayout from '../../Configuration/Pagelayout'
+import PageLayout from '../../Pagelayout'
 import { useSettingsPage } from '../../Configuration/Usesettingspage'
 import HeaderButton, { IconDelete, IconEdit, IconPlus } from '../../Configuration/Headerbutton'
-import { getSharedTableProps, singleSelect } from '../../Configuration/Tableconfig'
+import { getSharedTableProps, singleSelect } from '../../Tableconfig'
 
 // ═══════════════════════════════════════════════════════════════
 // PAGE — List of Users (Evaluation)

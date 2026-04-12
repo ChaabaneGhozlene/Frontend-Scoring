@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react'
 
 import { pageWrap, pageHeader, headerLeft, gearIcon, pageTitle, pageCrumb, headerActions, toastBase } from './Pagestyles'
-import type { Toast } from './Usesettingspage'
+import type { Toast } from './Configuration/Usesettingspage'
 
 interface Props {
   title:    string

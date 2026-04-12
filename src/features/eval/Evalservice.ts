@@ -1,6 +1,7 @@
 // features/eval/Evalservice.ts
 import axiosInstance from '../../services/axiosInstance'
 import type { ExportBlobParams } from '../exportUtils'
+import type { TraceActionDto } from '../recordings/Recordingstypes'
 
 const BASE = '/evaluation'
 
@@ -10,7 +11,6 @@ export interface OpenEvaluationRequestDto {
   recordId: number
 }
 
-// ✅ FIX : itemId (pas id) — correspond au champ attendu par le backend
 export interface SurveyItemValueDto {
   itemId: number
   value:  number
@@ -88,3 +88,26 @@ export const exportRecordsBlob = async (p: ExportBlobParams): Promise<Blob> => {
   })
   return res.data
 }
+export const streamAudioUrl = async (recordId: number): Promise<string> => {
+  // Fetch le fichier audio via axiosInstance (qui gère le token automatiquement)
+  const response = await axiosInstance.get(
+    `${BASE}/records/${recordId}/stream`,
+    { responseType: 'blob' }
+  )
+  
+  const blob    = new Blob([response.data], { type: response.headers['content-type'] })
+  const blobUrl = URL.createObjectURL(blob)
+  return blobUrl
+}
+export const streamScreenUrl = async (recordId: number): Promise<string> => {
+  const response = await axiosInstance.get(
+    `${BASE}/records/${recordId}/stream-screen`,
+    { responseType: 'blob' }
+  )
+  const blob    = new Blob([response.data], { type: response.headers['content-type'] })
+  const blobUrl = URL.createObjectURL(blob)
+  return blobUrl
+}
+export const traceScreenAction = async (dto: TraceActionDto): Promise<void> => {
+  await axiosInstance.post('/records/trace-screen', dto);
+};

@@ -1,13 +1,13 @@
 import { useMemo, useCallback, useState, useRef, useEffect } from 'react';
 import {
-  Button, ActionIcon, Tooltip, Group, Box, Text, 
+   ActionIcon, Tooltip, Group, Box, Text, 
 } from '@mantine/core';
 import {
-  IconDownload, IconHeadphones, IconVideo, IconTrash, IconFileText,
+   IconHeadphones, IconVideo, IconTrash, IconFileText,
 } from '@tabler/icons-react';
 import {
   MantineReactTable, useMantineReactTable,
-  type MRT_ColumnDef, type MRT_Row,
+  type MRT_ColumnDef, 
   type MRT_PaginationState, type MRT_ColumnFiltersState,
 } from 'mantine-react-table';
 import { useDispatch, useSelector } from 'react-redux';
@@ -21,10 +21,14 @@ import { exportRecordings, deleteRecording } from '../Recordingsservice';
 import ListenHistoryModal from './Listhistorymodal';
 import ScreenHistoryModal from './Screenhistorymodal';
 import DeleteConfirmModal from './Deleteconfirmmodal';
-import { exportAll, exportRows, type ExportBlobParams } from '../../exportUtils';
+import { type ExportBlobParams } from '../../exportUtils';
+import { getSharedTableProps } from '../../Tableconfig';
+import type { AgentReportDto } from '../../evaluation/Evaluationtypes';
+import { getAgent } from '../../evaluation/Evaluationservice';
+import AgentReportModal from '../../evaluation/components/Agentreportmodal';
 
 
-
+// ── buildColumns est défini au niveau module (pas de hooks ici, c'est OK) ──
 const buildColumns = (
   onHistory:       (r: Recording) => void,
   onScreenHistory: (r: Recording) => void,
@@ -45,7 +49,7 @@ const buildColumns = (
         </Tooltip>
         <Tooltip label="Screen recording" withArrow>
           <ActionIcon size="sm" variant="light"
-            color={row.original.HasHistoryScreen ? 'red' : 'gray'}
+            color={row.original.hasHistoryScreen ? 'red' : 'gray'}
             onClick={() => onScreenHistory(row.original)}>
             <IconVideo size={14} />
           </ActionIcon>
@@ -104,16 +108,21 @@ const RecordingsTable = ({
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>(initialColumnVisibility);
   const [columnSizing,     setColumnSizing]     = useState<Record<string, number>>(initialColumnSizing);
 
-  // ── Synchroniser quand la vue change (prop change via key ou sélection) ──
+  // ── État rapport d'évaluation ────────────────────────────────────────────
+  const [reportOpen,    setReportOpen]    = useState(false);
+  const [agentReport,   setAgentReport]   = useState<AgentReportDto | null>(null);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportError,   setReportError]   = useState<string | null>(null);
+
+  // ── Synchroniser quand la vue change ────────────────────────────────────
   useEffect(() => {
     setColumnVisibility(initialColumnVisibility);
     setColumnSizing(initialColumnSizing);
   }, [initialColumnVisibility, initialColumnSizing]);
 
-  // ── Synchroniser les filtres colonnes quand la vue change ────────────────
   useEffect(() => {
     setColumnFilters(initialColumnFilters);
-  }, [initialColumnFilters]);  // ← déclenché par changement de vue, pas par saisie utilisateur
+  }, [initialColumnFilters]);
 
   const [histRecord,    setHistRecord]    = useState<Recording | null>(null);
   const [histOpen,      setHistOpen]      = useState(false);
@@ -159,28 +168,36 @@ const RecordingsTable = ({
     }
   }, [deleteRecord, refetch]);
 
-  const handleEvaluation = useCallback((r: Recording) => {
-    console.log('Évaluation', r.id);
-  }, []);
+  // ── CORRECTION handleEvaluation ──────────────────────────────────────────
+  // Avant : bloqué par `r.hasEvaluation && r.lsId` → tombait toujours dans le else
+  // Après : on ouvre TOUJOURS le modal, et on appelle l'API si lsId est disponible
+const handleEvaluation = useCallback(async (r: Recording) => {
+  setAgentReport(null);
+  setReportError(null);
+  setReportOpen(true);
 
-const handleExportRows = useCallback((rows: MRT_Row<Recording>[]) => {
-  exportRows<Recording>(
-    rows.map(r => r.original),
-    'enregistrements',
-  );
+  if (!r.hasEvaluation) {
+    setReportError("Aucune évaluation disponible pour cet enregistrement.");
+    return;
+  }
+
+  setReportLoading(true);
+  try {
+    const data = await getAgent(r.id);
+    setAgentReport(data);
+  } catch (err: any) {
+    const status = err?.response?.status;
+    if (status === 404) {
+      setReportError("Aucune évaluation finalisée (sauvegardée) pour cet enregistrement.");
+    } else {
+      setReportError(
+        err?.response?.data?.message ?? "Erreur lors du chargement du rapport."
+      );
+    }
+  } finally {
+    setReportLoading(false);
+  }
 }, []);
-
-const handleExportAll = useCallback(() => {
-  exportAll<Recording>({
-    dateDebut,
-    dateFin,
-    filterId:      selectedFilterId,
-    columnFilters: columnFilters as unknown[],          // ← cast simple
-    records,
-    filename:      'enregistrements',
-    fetchBlob:     exportRecordings as (p: ExportBlobParams) => Promise<Blob>, // ← cast service
-  });
-}, [dateDebut, dateFin, selectedFilterId, columnFilters, records]);
   const pagination: MRT_PaginationState = useMemo(
     () => ({ pageIndex: page - 1, pageSize }), [page, pageSize],
   );
@@ -202,14 +219,13 @@ const handleExportAll = useCallback(() => {
 
   const handleColumnFiltersChange = useCallback(
     (updater: MRT_ColumnFiltersState | ((p: MRT_ColumnFiltersState) => MRT_ColumnFiltersState)) => {
-      // ── Accumuler les filtres, ne pas écraser ────────────────────────────
       const next = typeof updater === 'function' ? updater(columnFilters) : updater;
-      setColumnFilters(next);                                    // ← state local à jour
-      dispatch(setColumnFiltersAction(next as ColumnFilter[]));  // ← Redux à jour
+      setColumnFilters(next);
+      dispatch(setColumnFiltersAction(next as ColumnFilter[]));
       dispatch(fetchRecordingsRequest({
         dateDebut, dateFin, filterId: selectedFilterId,
         page: 1, pageSize,
-        columnFilters: next as ColumnFilter[],                   // ← envoie TOUS les filtres
+        columnFilters: next as ColumnFilter[],
       }));
     },
     [columnFilters, dispatch, dateDebut, dateFin, selectedFilterId, pageSize],
@@ -220,20 +236,40 @@ const handleExportAll = useCallback(() => {
     [handleHistory, handleScreenHistory, handleDelete, handleEvaluation],
   );
 
+  const sharedProps = useMemo(() => getSharedTableProps<Recording>(
+    totalCount,
+    {
+      filename:      'enregistrements',
+      records,
+      dateDebut,
+      dateFin,
+      filterId:      selectedFilterId,
+      columnFilters: columnFilters as unknown[],
+      fetchBlob:     exportRecordings as (p: ExportBlobParams) => Promise<Blob>,
+    }
+  ), [totalCount, records, dateDebut, dateFin, selectedFilterId, columnFilters]);
+
   const table = useMantineReactTable({
-    columns, data: records, rowCount: totalCount,
+    ...sharedProps,
+    columns,
+    data: records,
+    rowCount: totalCount,
+
     state: {
-      columnFilters:    columnFilters,    
+      columnFilters,
       isLoading:        loading,
       pagination,
       rowSelection,
       columnVisibility,
       columnSizing,
     },
-    manualPagination: true, manualFiltering: true,
-    onPaginationChange:    handlePaginationChange,
-    onColumnFiltersChange: handleColumnFiltersChange,
-    onRowSelectionChange:  setRowSelection,
+
+    manualPagination: true,
+    manualFiltering:  true,
+
+    onPaginationChange:       handlePaginationChange,
+    onColumnFiltersChange:    handleColumnFiltersChange,
+    onRowSelectionChange:     setRowSelection,
     onColumnVisibilityChange: (updater) => {
       const next = typeof updater === 'function' ? updater(colVisRef.current) : updater;
       setColumnVisibility(next);
@@ -242,41 +278,27 @@ const handleExportAll = useCallback(() => {
       const next = typeof updater === 'function' ? updater(colSizeRef.current) : updater;
       setColumnSizing(next);
     },
-    enableRowSelection:         true,
-    enableColumnFilters:        true,
-    enableColumnResizing:       true,
-    columnResizeMode:           'onChange',
-    columnFilterDisplayMode:    'popover',
-    paginationDisplayMode:      'pages',
-    positionToolbarAlertBanner: 'bottom',
-    enableGrouping:             true,
-    enableColumnDragging:       false,
-    enableStickyHeader:         true,
-    mantinePaginationProps: { rowsPerPageOptions: ['15', '25', '50', '100'] },
-    renderTopToolbarCustomActions: ({ table: t }) => (
-      <Box style={{ display: 'flex', gap: 8, padding: 8, flexWrap: 'wrap' }}>
-        <Button size="xs" color="red" variant="filled" leftIcon={<IconDownload size={14} />}
-          onClick={handleExportAll}>Export All</Button>
-        
-        <Button size="xs" color="red" variant="filled" leftIcon={<IconDownload size={14} />}
-          disabled={t.getRowModel().rows.length === 0}
-          onClick={() => handleExportRows(t.getRowModel().rows)}>Export Page</Button>
-        <Button size="xs" color="red" variant="filled" leftIcon={<IconDownload size={14} />}
-          disabled={!t.getIsSomeRowsSelected() && !t.getIsAllRowsSelected()}
-          onClick={() => handleExportRows(t.getSelectedRowModel().rows)}>Export Selected</Button>
-      </Box>
-    ),
-    renderBottomToolbarCustomActions: () => (
-      <Box px="xs">
-        <Text size="xs" c="dimmed">{totalCount} fiche(s) trouvée(s)</Text>
-      </Box>
-    ),
+
+    enableColumnResizing: true,
+    columnResizeMode:     'onChange',
+
     localization: {
-      noRecordsToDisplay: 'No data to display', rowsPerPage: 'Affichage:', of: 'sur',
-      showHideColumns: 'Colonnes', toggleSelectAll: 'Tout sélectionner',
-      toggleSelectRow: 'Sélectionner', groupedBy: 'Groupé par',
-      expand: 'Développer', collapse: 'Réduire',
+      ...sharedProps.localization,
+      showHideColumns:    'Colonnes',
+      toggleSelectAll:    'Tout sélectionner',
+      toggleSelectRow:    'Sélectionner',
+      groupedBy:          'Groupé par',
+      expand:             'Développer',
+      collapse:           'Réduire',
     },
+
+    mantinePaginationProps: {
+      rowsPerPageOptions: ['15', '25', '50', '100'],
+    },
+
+    mantineTableBodyRowProps: ({ }) => ({
+      style: { cursor: 'pointer' },
+    }),
   });
 
   useEffect(() => {
@@ -297,19 +319,41 @@ const handleExportAll = useCallback(() => {
       <Box px="sm" py={4} style={{ background: '#f8f9fa', borderBottom: '1px solid #dee2e6' }}>
         <Text size="xs" c="dimmed">Drag a column header here to group by that column</Text>
       </Box>
+
       <MantineReactTable table={table} />
-      <ListenHistoryModal opened={histOpen} onClose={() => setHistOpen(false)}
+
+      <ListenHistoryModal
+        opened={histOpen}
+        onClose={() => setHistOpen(false)}
         recordId={histRecord?.id ?? null}
         recordLabel={histRecord
           ? `${histRecord.prenomAgent ?? ''} ${histRecord.nomAgent ?? ''} — ${histRecord.callLocalTimeString ?? ''}`
-          : undefined} />
-      <ScreenHistoryModal opened={screenOpen} onClose={() => setScreenOpen(false)}
+          : undefined}
+      />
+      <ScreenHistoryModal
+        opened={screenOpen}
+        onClose={() => setScreenOpen(false)}
         recordId={screenRecord?.id ?? null}
         recordLabel={screenRecord
           ? `${screenRecord.prenomAgent ?? ''} ${screenRecord.nomAgent ?? ''} — ${screenRecord.callLocalTimeString ?? ''}`
-          : undefined} />
-      <DeleteConfirmModal opened={deleteOpen} onClose={() => !deleteLoading && setDeleteOpen(false)}
-        onConfirm={handleConfirmDelete} recordLabel={deleteLabel} loading={deleteLoading} />
+          : undefined}
+      />
+      <DeleteConfirmModal
+        opened={deleteOpen}
+        onClose={() => !deleteLoading && setDeleteOpen(false)}
+        onConfirm={handleConfirmDelete}
+        recordLabel={deleteLabel}
+        loading={deleteLoading}
+      />
+
+      {/* ── Modal rapport d'évaluation ───────────────────────────────────── */}
+      <AgentReportModal
+        opened={reportOpen}
+        onClose={() => setReportOpen(false)}
+        report={agentReport}
+        loading={reportLoading}
+        error={reportError}
+      />
     </>
   );
 };

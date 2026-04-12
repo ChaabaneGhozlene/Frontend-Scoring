@@ -7,6 +7,12 @@ export const ROUTES = {
   EVALUATIONS_LIST: '/evaluations',
   STATISTICS: '/statistics',
   STATISTICS_CUSTOM: '/statistics/custom',
+    STATISTICS_SECTION_STATS:    '/statistics/section-stats',
+  STATISTICS_AGENT_SCORES:     '/statistics/agent-scores',
+  STATISTICS_PROGRAM_LEVEL:    '/statistics/program-level',
+  STATISTICS_COACHING_SHEET:   '/statistics/coaching-sheet',
+  STATISTICS_COACHING_ANALYSIS:'/statistics/coaching-analysis',
+  STATISTICS_COACHING_SUMMARY: '/statistics/coaching-summary',
   CONFIGURATION_AGENTS: '/configuration/agents',
   CONFIGURATION_AGENTS_DETAILS: '/configuration/agentsDetails',
 

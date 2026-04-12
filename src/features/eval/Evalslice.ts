@@ -1,4 +1,3 @@
-// features/evaluation/Evaluationslice.ts
 
 import { createSlice, type PayloadAction} from '@reduxjs/toolkit'
 
@@ -22,6 +21,7 @@ export interface CallReasonOption {
   libelle: string
 }
 
+
 export interface EvalGridRow {
   id:             number
   surveyId:       number
@@ -40,19 +40,37 @@ export interface EvalGridRow {
 }
 
 export interface RecordRow {
-  id:               number
-  recordDate:       string | null
-  campaignId:       number | null
-  campaignName:     string | null
-  agentId:          number | null
-  agentOid:         string | null
-  nomAgent:         string | null
-  prenomAgent:      string | null
-  heureAppel:       string | null
-  statut:           string | null
-  detailStatut:     string | null
-  recIdLink:        number | null
-  isSaved?:         number
+  id:                    number
+  agentId:               number | null
+  agentOid:              string | null
+  nomAgent:              string | null
+  prenomAgent:           string | null
+  isSaved?:              number
+  // Campagne
+  campaignId:            number | null
+  campaignName:          string | null
+  campaignDescription:   string | null
+  // Temps
+  callLocalTime:         string | null
+  callLocalTimeString:   string | null
+  heureAppel:            string | null
+  recordDate:            string | null
+  // Statut
+  statut:                string | null
+  detailStatut:          string | null
+  statusRequal:          string | null
+  statusDescription:     string | null
+  callTypeDescription:   string | null
+  // Autres
+  recIdLink:             number | null
+  lsId:                  string | null
+  numeroTel:             string | null
+  duration:              number | null
+  typeRequalif:          string | null
+  hasHistory:            boolean
+  hasEvaluation:         boolean
+  hasHistoryScreen:      boolean
+  screenFileName?:       string | null
 }
 
 export interface OpenEvaluationResponse {
@@ -60,6 +78,7 @@ export interface OpenEvaluationResponse {
   recordDate:  string
   evalDate:    string
   callIndex:   string
+   auditor: string
   gridRows:    EvalGridRow[]
   categories:  CategoryOption[]
   callReasons: CallReasonOption[]
