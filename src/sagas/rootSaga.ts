@@ -9,6 +9,7 @@ import { usersSaga } from '../features/Users/usersaga';
 import { evalSaga } from '../features/eval/Evalsaga';
 import { statistiqueSaga } from '../features/statistique/Statistiquesaga';
 import { dashboardBuilderSaga } from '../features/statistique/DashboardSaga';
+import { statSaga } from '../features/stat/statSaga';
  function* rootSaga() {
   yield all([
     fork(authSaga),
@@ -22,7 +23,7 @@ import { dashboardBuilderSaga } from '../features/statistique/DashboardSaga';
     fork(evalSaga),
     fork(statistiqueSaga),
     fork(dashboardBuilderSaga),  // ← ajouter
-
+ fork(statSaga)
   ]);
 }
 export default rootSaga;

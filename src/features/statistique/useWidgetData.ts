@@ -49,56 +49,67 @@ export function useWidgetData(widget: WidgetInstance): UseWidgetDataResult {
   const [loading,      setLoading]      = useState(false)
   const [refreshToken, setRefreshToken] = useState(0)
 
-  // Ref sur tout le widget → toujours à jour, sans re-créer fetchData
   const widgetRef = useRef(widget)
   widgetRef.current = widget
+
+  // ← Clé stable qui change quand n'importe quel filtre "actif" change
+  const filterKey = [
+    widget.filters.dateFrom,
+    widget.filters.dateTo,
+    widget.filters.allSupervisors,
+    widget.filters.supervisorId  ?? 'none',
+    widget.filters.agentId       ?? 'none',
+    widget.filters.sortDirection ?? 'Descending',
+    widget.widgetType,
+  ].join('|')
 
   const fetchData = useCallback(async () => {
     const w       = widgetRef.current
     const filters = fixFiltersDates(w.filters)
 
-    // Lire allSupervisors et agentId depuis les filtres du widget
-const allSupervisors = filters.allSupervisors  ?? true
-const agentId        = filters.agentId         ?? 0
-const sortDirection  = filters.sortDirection   ?? 'Descending' // ✅ maintenant reconnu
+    const agentId       = filters.agentId       ?? 0
+    const sortDirection = filters.sortDirection ?? 'Descending'
+
+    setLoading(true)
+
     try {
       switch (w.widgetType) {
-
-case 'agent-scores': {
-  const rows = await fetchAgentScoresApi(filters, sortDirection) // ✅ sortDirection depuis filters
-  setData(rows as unknown as Record<string, unknown>[])
-  setSectionRows([])
-  break
-}
-
-case 'program-level': {
-  const rows = await fetchProgramLevelApi(filters) // ✅ supprimé allSupervisors
-  setData(rows as unknown as Record<string, unknown>[])
-  setSectionRows([])
-  break
-}
-
-case 'coaching-sheet': {
-  const rows = await fetchCoachingSheetApi(filters, agentId) // ✅ supprimé allSupervisors
-  setData(rows as unknown as Record<string, unknown>[])
-  setSectionRows([])
-  break
-}
-
-case 'coaching-analysis': {
-  const rows = await fetchCoachingAnalysisApi(filters, agentId) // ✅ supprimé allSupervisors
-  setData(rows as unknown as Record<string, unknown>[])
-  setSectionRows([])
-  break
-}
-
-case 'coaching-summary': {
-  const rows = await fetchCoachingSummaryApi(filters, agentId) // ✅ supprimé allSupervisors
-  setData(rows as unknown as Record<string, unknown>[])
-  setSectionRows([])
-  break
-}
-
+        case 'section-stats': {
+          const rows = await fetchSectionStatsApi(filters)
+          setSectionRows(rows as unknown as SectionStatRow[])
+          setData(rows as unknown as Record<string, unknown>[])
+          break
+        }
+        case 'agent-scores': {
+          const rows = await fetchAgentScoresApi(filters, sortDirection)
+          setData(rows as unknown as Record<string, unknown>[])
+          setSectionRows([])
+          break
+        }
+        case 'program-level': {
+          const rows = await fetchProgramLevelApi(filters)
+          setData(rows as unknown as Record<string, unknown>[])
+          setSectionRows([])
+          break
+        }
+        case 'coaching-sheet': {
+          const rows = await fetchCoachingSheetApi(filters, agentId)
+          setData(rows as unknown as Record<string, unknown>[])
+          setSectionRows([])
+          break
+        }
+        case 'coaching-analysis': {
+          const rows = await fetchCoachingAnalysisApi(filters, agentId)
+          setData(rows as unknown as Record<string, unknown>[])
+          setSectionRows([])
+          break
+        }
+        case 'coaching-summary': {
+          const rows = await fetchCoachingSummaryApi(filters, agentId)
+          setData(rows as unknown as Record<string, unknown>[])
+          setSectionRows([])
+          break
+        }
         default:
           setData([])
           setSectionRows([])
@@ -110,7 +121,7 @@ case 'coaching-summary': {
     } finally {
       setLoading(false)
     }
-  }, [refreshToken]) // ✅ widgetRef.current est toujours à jour → pas dans les deps
+  }, [filterKey, refreshToken]) // ← filterKey + refreshToken
 
   useEffect(() => {
     fetchData()

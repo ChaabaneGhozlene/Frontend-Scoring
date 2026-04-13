@@ -14,6 +14,7 @@ import EvaluationPage from "../features/evaluation/pages/Evaluationpage";
 import UsersPage from "../features/Users/page/Userspage";
 import EvalPage from "../features/eval/page/Evalpage";
 import DashboardBuilder from "../features/statistique/DashboardBuilder";
+import SectionStatPage from "../features/stat/Sectionstatpage";
 
 const AppRouter = () => {
   return (
@@ -45,7 +46,7 @@ const AppRouter = () => {
             <Route path={ROUTES.EVALUATIONS_LIST} element={<EvaluationPage />} />
             <Route path={ROUTES.EVALUATION} element={<EvalPage />} />
 
-<Route path={ROUTES.STATISTICS} element={<DashboardBuilder />} />
+<Route path={ROUTES.STATISTICS} element={<SectionStatPage />} />
 
           </Route>
         </Route>

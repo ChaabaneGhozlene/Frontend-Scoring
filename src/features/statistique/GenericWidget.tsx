@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'; // ✅ ajouter useEffect
+import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { WIDGET_REGISTRY } from './WidgetRegistry';
 import type { WidgetInstance, SupervisorItem } from './Statistiquetypes';
@@ -9,7 +9,8 @@ import StatsTable from './components/Statstable';
 import StatsChart from './components/Statschart';
 import { useWidgetData } from './useWidgetData';
 import SectionStatsTable from './components/Sectionstatstable';
-import { fetchSupervisorListApi } from './Statistiqueservice'; // ✅ ajouter import
+import { fetchSupervisorListApi } from './Statistiqueservice';
+import ExportButton from './components/Exportbutton';
 
 interface Props {
   widget:           WidgetInstance;
@@ -28,13 +29,15 @@ const GenericWidget: React.FC<Props> = ({
   const definition = WIDGET_REGISTRY[widget.widgetType];
   const agentList  = useSelector((s: RootState) => s.statistique.agentList);
 
+  // ref sur le conteneur du graphique, transmis à StatsTable et ExportButton
+  const chartRef = useRef<HTMLDivElement>(null);
+
   const [showFilters,          setShowFilters]          = useState(false);
   const [selectedSupervisorId, setSelectedSupervisorId] = useState<number | null>(null);
   const [supervisorList,       setSupervisorList]       = useState<SupervisorItem[]>([]);
 
-  // ✅ Charger les superviseurs au montage du widget
   useEffect(() => {
-    if (definition.hasSupervisorFilter) { // ✅ uniquement si le widget en a besoin
+    if (definition.hasSupervisorFilter) {
       fetchSupervisorListApi()
         .then(setSupervisorList)
         .catch(err => console.error('Erreur chargement superviseurs:', err));
@@ -52,16 +55,13 @@ const GenericWidget: React.FC<Props> = ({
     filters: effectiveFilters,
   });
 
-const handleSupervisorChange = (id: number | null) => {
-  setSelectedSupervisorId(id);
-  dispatch(updateWidgetFilter({
-    id:      widget.id,
-    filters: { 
-      ...effectiveFilters, 
-      supervisorId: id ?? undefined,  // ← ajouter ici
-    },
-  }));
-};
+  const handleSupervisorChange = (id: number | null) => {
+    setSelectedSupervisorId(id);
+    dispatch(updateWidgetFilter({
+      id:      widget.id,
+      filters: { ...effectiveFilters, supervisorId: id ?? undefined },
+    }));
+  };
 
   const handleAllSupervisorsChange = (v: boolean) => {
     dispatch(updateWidgetFilter({
@@ -127,6 +127,15 @@ const handleSupervisorChange = (id: number | null) => {
               {data.length} lignes
             </span>
           )}
+
+          {/* Bouton export : PDF (données + graphique), XLS, CSV, RTF */}
+          <ExportButton
+            widgetType={widget.widgetType}
+            filter={effectiveFilters}
+            agentId={effectiveFilters.agentId}
+            sortDirection={effectiveFilters.sortDirection}
+            chartRef={definition.hasChart ? chartRef : undefined}
+          />
 
           <button
             onClick={() => setShowFilters(v => !v)}
@@ -223,6 +232,7 @@ const handleSupervisorChange = (id: number | null) => {
           columns={definition.columns}
           loading={loading}
           chart={chart}
+          chartRef={chartRef}
         />
       )}
 

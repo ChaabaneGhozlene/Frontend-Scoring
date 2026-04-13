@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import type { AgentListItem, ChartType, SortDirection, StatFilter, SupervisorItem } from '../Statistiquetypes';
+import type { AgentListItem, ChartType, ExportFormat, SortDirection, StatFilter, SupervisorItem } from '../Statistiquetypes';
 import type { WidgetDefinition } from '../WidgetRegistry';
+import ExportMenu from './Exportmenu';
 
 interface StatsFilterProps {
   filter:                StatFilter;
@@ -19,6 +20,8 @@ interface StatsFilterProps {
   onSortChange:          (v: SortDirection) => void;
   onChartTypeChange:     (v: ChartType) => void;
   onRefresh:             () => void;
+                       // ✅ ajouter
+
 }
 
 const CHART_OPTIONS: { type: ChartType; icon: string; label: string }[] = [
@@ -114,7 +117,7 @@ const StatsFilter: React.FC<StatsFilterProps> = ({
   selectedAgentId, selectedSupervisorId,
   allSupervisors, sortDirection, chartType,
   onFilterChange, onAgentChange, onSupervisorChange,
-  onAllSupervisorsChange, onSortChange, onChartTypeChange, onRefresh,
+  onAllSupervisorsChange, onSortChange, onChartTypeChange,  onRefresh, 
 }) => {
   const agent = useFocus();
 
@@ -229,40 +232,12 @@ const StatsFilter: React.FC<StatsFilterProps> = ({
         </>
       )}
 
-      {/* ── 3. Sort direction ─────────────────────────────────────────── */}
-      {config.hasSortFilter && (
-        <>
-          <Divider />
-          <Field>
-            <Label>Agents</Label>
-            <div style={{ display: 'flex', gap: 4 }}>
-              {(['Descending', 'Ascending'] as SortDirection[]).map(dir => (
-                <button
-                  key={dir}
-                  onClick={() => handleSortChange(dir)}
-                  style={{
-                    padding: '7px 10px',
-                    background: sortDirection === dir ? 'rgba(220,38,38,0.08)' : '#f8fafc',
-                    border: `1px solid ${sortDirection === dir ? 'rgba(220,38,38,0.45)' : 'rgba(220,38,38,0.18)'}`,
-                    borderRadius: 8, cursor: 'pointer',
-                    color: sortDirection === dir ? '#dc2626' : '#64748b',
-                    fontSize: 11, fontWeight: 600,
-                    transition: 'all 0.2s ease',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {dir === 'Descending' ? '↓ Meilleurs' : '↑ À améliorer'}
-                </button>
-              ))}
-            </div>
-          </Field>
-        </>
-      )}
+      
 
       {/* ── 4. Chart type pills ───────────────────────────────────────── */}
       {config.hasChart && (
         <>
-          <Divider />
+          
           <Field>
             <Label>Graphique</Label>
             <div style={{ display: 'flex', gap: 4 }}>
@@ -296,6 +271,7 @@ const StatsFilter: React.FC<StatsFilterProps> = ({
           </Field>
         </>
       )}
+
 
       {/* ── 5. Refresh ────────────────────────────────────────────────── */}
       <div style={{ marginLeft: 'auto' }}>

@@ -7,7 +7,7 @@ interface Props<T extends object> {
   columns: Array<{ key: string; header: string; format?: (v: any) => string }>;
   loading: boolean;
   chart?: React.ReactNode;
-  
+  chartRef?: React.RefObject<HTMLDivElement | null>; // ← NEW : ref sur le conteneur du graphique
 }
 
 // ─── Divider ──────────────────────────────────────────────────────────────────
@@ -120,7 +120,6 @@ function TableCore<T extends object>({ data, columns, loading, totalCount }: Tab
     columns,
     state,
     ...sharedProps,
-    // ── Style overrides pour un look plus soigné ──────────────────────────
     mantineTableProps: {
       style: {
         fontFamily: "'Segoe UI', sans-serif",
@@ -166,31 +165,21 @@ function TableCore<T extends object>({ data, columns, loading, totalCount }: Tab
 const MemoTableCore = React.memo(TableCore) as typeof TableCore;
 
 // ─── Score Cell ───────────────────────────────────────────────────────────────
-const SCORE_THRESHOLD = 90; // en dessous = rouge
+const SCORE_THRESHOLD = 90;
 
 function ScoreCell({ value, formatted }: { value: number | null; formatted: string }) {
   if (value == null) return <span style={{ color: '#9ca3af' }}>—</span>;
   const isLow = typeof value === 'number' && value < SCORE_THRESHOLD;
   return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 4,
-        fontWeight: 600,
-        color: isLow ? '#D85A30' : '#1D9E75',
-      }}
-    >
-      <span
-        style={{
-          width: 7,
-          height: 7,
-          borderRadius: '50%',
-          background: isLow ? '#D85A30' : '#1D9E75',
-          flexShrink: 0,
-          display: 'inline-block',
-        }}
-      />
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 4,
+      fontWeight: 600, color: isLow ? '#D85A30' : '#1D9E75',
+    }}>
+      <span style={{
+        width: 7, height: 7, borderRadius: '50%',
+        background: isLow ? '#D85A30' : '#1D9E75',
+        flexShrink: 0, display: 'inline-block',
+      }} />
       {formatted}
     </span>
   );
@@ -199,32 +188,21 @@ function ScoreCell({ value, formatted }: { value: number | null; formatted: stri
 // ─── Eval Badge ───────────────────────────────────────────────────────────────
 function EvalBadge({ value }: { value: number }) {
   return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minWidth: 24,
-        height: 20,
-        background: '#EEEDFE',
-        color: '#534AB7',
-        borderRadius: 10,
-        fontSize: 11,
-        fontWeight: 600,
-        padding: '0 7px',
-      }}
-    >
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      minWidth: 24, height: 20, background: '#EEEDFE', color: '#534AB7',
+      borderRadius: 10, fontSize: 11, fontWeight: 600, padding: '0 7px',
+    }}>
       {value}
     </span>
   );
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-function StatsTable<T extends object>({ data, columns, loading, chart }: Props<T>) {
+function StatsTable<T extends object>({ data, columns, loading, chart, chartRef }: Props<T>) {
   const [tablePct, setTablePct] = useState(55);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Convertir colonnes WidgetRegistry → MRT_ColumnDef avec rendu enrichi
   const mrtColumns = useMemo<MRT_ColumnDef<T>[]>(() => {
     return columns.map((col) => ({
       accessorKey: col.key,
@@ -233,7 +211,6 @@ function StatsTable<T extends object>({ data, columns, loading, chart }: Props<T
         const raw = cell.getValue();
         const formatted = col.format ? col.format(raw) : String(raw ?? '—');
 
-        // Score : colonne dont le header contient "score", "%" ou "référence"
         const isScoreCol =
           /score|%|référence|ref/i.test(col.header) ||
           /score|ref/i.test(col.key);
@@ -242,7 +219,6 @@ function StatsTable<T extends object>({ data, columns, loading, chart }: Props<T
           return <ScoreCell value={typeof raw === 'number' ? raw : null} formatted={formatted} />;
         }
 
-        // Évaluations : colonne contenant un count numérique simple
         const isEvalCol = /eval|count|nb|nbre/i.test(col.header) || /eval|count/i.test(col.key);
         if (isEvalCol && typeof raw === 'number') {
           return <EvalBadge value={raw} />;
@@ -274,39 +250,32 @@ function StatsTable<T extends object>({ data, columns, loading, chart }: Props<T
       <div
         ref={containerRef}
         style={{
-          display: 'flex',
-          flexDirection: 'row',
-          gap: 0,
-          alignItems: 'stretch',
-          width: '100%',
-          minHeight: 500,
+          display: 'flex', flexDirection: 'row',
+          gap: 0, alignItems: 'stretch',
+          width: '100%', minHeight: 500,
         }}
       >
-        <div
-          style={{
-            width: `${tablePct}%`,
-            flexShrink: 0,
-            background: '#fff',
-            borderRight: '1px solid #f3f4f6',
-            overflow: 'hidden',
-            boxSizing: 'border-box',
-          }}
-        >
+        {/* Tableau */}
+        <div style={{
+          width: `${tablePct}%`, flexShrink: 0,
+          background: '#fff', borderRight: '1px solid #f3f4f6',
+          overflow: 'hidden', boxSizing: 'border-box',
+        }}>
           {tableNode}
         </div>
+
+        {/* Séparateur redimensionnable */}
         <div style={{ padding: '0 4px', display: 'flex', alignItems: 'stretch' }}>
           <Divider onResize={handleResize} />
         </div>
+
+        {/* Graphique — chartRef posé ici pour la capture html2canvas */}
         <div
+          ref={chartRef}   // ← ref pour la capture export PDF
           style={{
-            flex: 1,
-            minWidth: 0,
-            background: '#fff',
-            padding: 20,
-            boxSizing: 'border-box',
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
+            flex: 1, minWidth: 0, background: '#fff',
+            padding: 20, boxSizing: 'border-box',
+            display: 'flex', flexDirection: 'column', overflow: 'hidden',
           }}
         >
           {chart}

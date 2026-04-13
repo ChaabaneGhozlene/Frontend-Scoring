@@ -152,7 +152,7 @@ const DashboardBuilder: React.FC = () => {
             onClick={() => dispatch(toggleEditMode())}
             style={{
               padding: '7px 16px',
-              background: editMode ? '#16a34a' : '#7C3AED',
+              background: editMode ? '#16a34a' : '#DC2626',
               color: '#fff', border: 'none', borderRadius: 6,
               fontSize: 13, fontWeight: 600, cursor: 'pointer',
             }}
@@ -166,7 +166,7 @@ const DashboardBuilder: React.FC = () => {
               onClick={() => dispatch(saveConfigRequest())}
               style={{
                 padding: '7px 16px',
-                background: saveLoading ? '#d1d5db' : '#2563eb',
+                background: saveLoading ? '#d1d5db' : '#DC2626',
                 color: saveLoading ? '#9ca3af' : '#fff',
                 border: 'none', borderRadius: 6,
                 fontSize: 13, fontWeight: 600,

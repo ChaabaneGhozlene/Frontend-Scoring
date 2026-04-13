@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { UserDashboardConfig, WidgetInstance, ChartType, StatFilter } from './Statistiquetypes';
+import type { UserDashboardConfig, WidgetInstance, ChartType, StatFilter, UpdateWidgetFilterPayload, } from './Statistiquetypes';
 import { v4 as uuid } from 'uuid';
 
 interface DashboardBuilderState {
@@ -104,11 +104,14 @@ addWidget(state, action: PayloadAction<{ widgetType: WidgetInstance['widgetType'
       if (idx !== -1) state.config.widgets[idx] = { ...state.config.widgets[idx], ...action.payload };
     },
 
-    updateWidgetFilter(state, action: PayloadAction<{ id: string; filters: StatFilter }>) {
-      if (!state.config) return;
-      const w = state.config.widgets.find(w => w.id === action.payload.id);
-      if (w) w.filters = action.payload.filters;
-    },
+    // ✅ CORRECTION — merge profond
+updateWidgetFilter(state, action: PayloadAction<UpdateWidgetFilterPayload>) {
+  if (!state.config) return;
+  const w = state.config.widgets.find(w => w.id === action.payload.id);
+  if (w) {
+    w.filters = { ...w.filters, ...action.payload.filters };
+  }
+},
 
     updateWidgetChartType(state, action: PayloadAction<{ id: string; chartType: ChartType }>) {
       if (!state.config) return;

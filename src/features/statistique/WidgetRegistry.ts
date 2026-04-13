@@ -65,7 +65,7 @@ export const WIDGET_REGISTRY: Record<ReportType, WidgetDefinition> = {
     description:         'Évolution par programme',
     icon:                '📈',
     needsAgentFilter:    false,
-    hasSupervisorFilter: true,
+    hasSupervisorFilter: false,
     hasSortFilter:       false,
     hasChart:            true,
     chartXKey:           'agent',
