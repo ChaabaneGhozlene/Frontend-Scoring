@@ -10,7 +10,9 @@ import usersReducer from '../features/Users/userSlice'
 import evalReducer from   '../features/eval/Evalslice'
 import statistiqueReducer    from '../features/statistique/Statistiqueslice'
 import dashboardBuilderReducer from '../features/statistique/DashboardSlice'
-import statReducer             from '../features/stat/Statistiqueslice';
+import sectionStatReducer from '../features/stat/Statistiqueslice';
+import type { Reducer }      from '@reduxjs/toolkit'
+
 const rootReducer = combineReducers({
   auth:      authReducer,
   recordings: recordingsReducer,
@@ -24,7 +26,7 @@ const rootReducer = combineReducers({
   Users: usersReducer,
     statistique:     statistiqueReducer,
         dashboardBuilder: dashboardBuilderReducer,  // ← ajouter
-  stat:             statReducer,             // ← features/stat/ (section stats)
+  sectionStat:      sectionStatReducer,             // ← neutralise le conflit
 
 
 

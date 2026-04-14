@@ -1,3 +1,5 @@
+// ─── DTOs (miroir du backend) ────────────────────────────────────────────────
+
 export interface StatistiqueRowDto {
   surveyId: number;
   createDate: string;
@@ -42,16 +44,30 @@ export interface StatistiqueFilterDto {
   userRole: number;
 }
 
+/**
+ * Filtre simplifié utilisé par Sectionstatfilter (dates uniquement).
+ * Pour convertir en StatistiqueFilterDto complet :
+ *   const full: StatistiqueFilterDto = { ...sectionFilter, userId, siteId, userRole }
+ */
+export interface SectionStatFilterDto {
+  dateDebut: string;
+  dateFin: string;
+}
+
 export interface StatistiqueExportDto {
   filter: StatistiqueFilterDto;
   format: "CSV" | "PDF" | "XLS" | "RTF";
 }
+
+// ─── View model (enrichi côté frontend) ─────────────────────────────────────
 
 export interface StatistiqueRowViewModel extends StatistiqueRowDto {
   monthYear: string;
   year: number;
   weekYear: string;
 }
+
+// ─── Pivot ───────────────────────────────────────────────────────────────────
 
 export type MeasureKey = "score" | "count" | "itemValue";
 
@@ -68,8 +84,9 @@ export interface PivotResult {
   measure: MeasureKey;
 }
 
-// ✅ Renommé pour éviter la collision avec features/statistique/
-export interface SectionStatState {
+// ─── Redux State ─────────────────────────────────────────────────────────────
+
+export interface StatistiqueState {
   data: StatistiqueRowViewModel[];
   agents: AgentDto[];
   campaigns: CampaignDto[];
@@ -82,6 +99,8 @@ export interface SectionStatState {
   error: string | null;
   exportLoading: boolean;
 }
+
+// ─── Saga Payloads ───────────────────────────────────────────────────────────
 
 export interface FetchStatistiquePayload {
   filter: StatistiqueFilterDto;

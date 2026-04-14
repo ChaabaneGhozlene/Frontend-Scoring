@@ -18,7 +18,6 @@ export interface WidgetDefinition {
 }
 
 const fmtScore = (v: number) => v != null ? `${v.toFixed(2)}%` : '-';
-const fmtDate  = (v: string) => v ? new Date(v).toLocaleDateString('fr-FR') : '-';
 
 export const WIDGET_REGISTRY: Record<ReportType, WidgetDefinition> = {
  'section-stats': {

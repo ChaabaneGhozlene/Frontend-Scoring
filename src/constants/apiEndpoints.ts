@@ -23,4 +23,8 @@ export const API_ENDPOINTS = {
   // Files
   FILE_AUDIO: (recordId: number) => `/files/audio/${recordId}`,
   FILE_SCREEN: (recordId: number) => `/files/screen/${recordId}`,
+  SECTION_STAT: {
+    SEARCH: '/api/statistique/sectionstat/search',
+    EXPORT: '/api/statistique/sectionstat/export',
+  },
 } as const;

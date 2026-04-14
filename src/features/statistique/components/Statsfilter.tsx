@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import type { AgentListItem, ChartType, ExportFormat, SortDirection, StatFilter, SupervisorItem } from '../Statistiquetypes';
+import type { AgentListItem, ChartType, SortDirection, StatFilter, SupervisorItem } from '../Statistiquetypes';
 import type { WidgetDefinition } from '../WidgetRegistry';
-import ExportMenu from './Exportmenu';
 
 interface StatsFilterProps {
   filter:                StatFilter;
@@ -115,9 +114,9 @@ const Divider = () => (
 const StatsFilter: React.FC<StatsFilterProps> = ({
   filter, config, agentList, supervisorList,
   selectedAgentId, selectedSupervisorId,
-  allSupervisors, sortDirection, chartType,
+  allSupervisors,  chartType,
   onFilterChange, onAgentChange, onSupervisorChange,
-  onAllSupervisorsChange, onSortChange, onChartTypeChange,  onRefresh, 
+  onAllSupervisorsChange, onChartTypeChange,  onRefresh, 
 }) => {
   const agent = useFocus();
 
@@ -126,10 +125,7 @@ const StatsFilter: React.FC<StatsFilterProps> = ({
     onFilterChange({ ...filter, allSupervisors: v });
   };
 
-  const handleSortChange = (v: SortDirection) => {
-    onSortChange(v);
-    onFilterChange({ ...filter, sortDirection: v });
-  };
+  
 
   return (
     <div style={{

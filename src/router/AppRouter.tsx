@@ -11,10 +11,9 @@ import AgentTeamSettingsPage from "../features/Configuration/AgentTeamConfig/pag
 import NotificationSettingPage from "../features/Configuration/AgentMailConfig/pages/NotificationSettingPage";
 import PublicRoute from "../features/auth/components/PublicRoute";
 import EvaluationPage from "../features/evaluation/pages/Evaluationpage";
-import UsersPage from "../features/Users/page/Userspage";
+import StatistiquePivot from "../features/statistique/Statistiquepivot";
 import EvalPage from "../features/eval/page/Evalpage";
-import DashboardBuilder from "../features/statistique/DashboardBuilder";
-import SectionStatPage from "../features/stat/Sectionstatpage";
+import StatistiquePage from "../features/stat/Sectionstatpage";
 
 const AppRouter = () => {
   return (
@@ -46,7 +45,7 @@ const AppRouter = () => {
             <Route path={ROUTES.EVALUATIONS_LIST} element={<EvaluationPage />} />
             <Route path={ROUTES.EVALUATION} element={<EvalPage />} />
 
-<Route path={ROUTES.STATISTICS} element={<SectionStatPage />} />
+<Route path={ROUTES.STATISTICS} element={<StatistiquePage />} />
 
           </Route>
         </Route>

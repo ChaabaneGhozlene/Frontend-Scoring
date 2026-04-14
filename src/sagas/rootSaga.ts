@@ -24,6 +24,7 @@ import { statSaga } from '../features/stat/statSaga';
     fork(statistiqueSaga),
     fork(dashboardBuilderSaga),  // ← ajouter
  fork(statSaga)
+
   ]);
 }
 export default rootSaga;
