@@ -11,7 +11,6 @@ import evalReducer from   '../features/eval/Evalslice'
 import statistiqueReducer    from '../features/statistique/Statistiqueslice'
 import dashboardBuilderReducer from '../features/statistique/DashboardSlice'
 import sectionStatReducer from '../features/stat/Statistiqueslice';
-import type { Reducer }      from '@reduxjs/toolkit'
 
 const rootReducer = combineReducers({
   auth:      authReducer,

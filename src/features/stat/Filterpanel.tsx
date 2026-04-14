@@ -15,12 +15,19 @@ const EXPORT_FORMATS = ["CSV", "XLS", "PDF", "RTF"] as const;
 const FilterPanel: React.FC = () => {
   const dispatch = useDispatch();
 
-  const state = useSelector((s: RootState) => s.sectionStat as SectionStatState);
+const state = useSelector((s: RootState) => s.sectionStat) as SectionStatState | undefined;
 
   // ✅ fallbacks pour éviter .map sur undefined
   const filters       = state?.filters;
-  const agents        = state?.agents        ?? [];
-  const campaigns     = state?.campaigns     ?? [];
+const agents    = useSelector((s: RootState) => {
+  const val = (s.sectionStat as SectionStatState)?.agents;
+  return Array.isArray(val) ? val : [];
+});
+
+const campaigns = useSelector((s: RootState) => {
+  const val = (s.sectionStat as SectionStatState)?.campaigns;
+  return Array.isArray(val) ? val : [];
+});
   const measure       = state?.measure       ?? "score";
   const loading       = state?.loading       ?? false;
   const exportLoading = state?.exportLoading ?? false;
