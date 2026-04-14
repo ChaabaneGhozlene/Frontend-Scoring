@@ -5,6 +5,7 @@ import {
   fetchAgentsRequest,
   fetchCampaignsRequest,
   resetError,
+  setFilters,
 } from "./Statistiqueslice";
 import FilterPanel from "./Filterpanel";
 import PivotBuilder from "./Pivotbuilder";
@@ -16,6 +17,7 @@ import type { MeasureKey, SectionStatState } from "./StatiTypes";
 
 const StatistiquePage: React.FC = () => {
   const dispatch = useDispatch();
+const authUser = useSelector((s: RootState) => s.auth.user);
 
   // ✅ lecture depuis sectionStat
   const state = useSelector((s: RootState) => s.sectionStat as SectionStatState);
@@ -26,21 +28,19 @@ const StatistiquePage: React.FC = () => {
   const error         = state?.error         ?? null;
 
   // ── Chargement initial ────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!filters) return;
-    dispatch(fetchAgentsRequest({
-      userId:         filters.userId        ?? 0,
-      userRole:       filters.userRole      ?? 1,
-      siteId:         filters.siteId        ?? 0,
-      allSupervisors: filters.allSupervisors ?? true,
-    }));
-    dispatch(fetchCampaignsRequest({
-      userId: filters.userId ?? 0,
-      siteId: filters.siteId ?? 0,
-    }));
-    dispatch(fetchDataRequest({ filter: filters }));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+useEffect(() => {
+  if (!filters || !authUser?.userId) return; // ✅ attendre que authUser soit prêt
+  const userId = Number(authUser.userId);
+  const userRole = isNaN(Number(authUser?.userRole)) ? 1 : Number(authUser.userRole);
+  const siteId = Number((authUser as any)?.siteId ?? 0);
+
+  dispatch(setFilters({ userId, userRole, siteId }));
+  const enrichedFilter = { ...filters, userId, userRole, siteId };
+
+  dispatch(fetchAgentsRequest({ userId, userRole, siteId, allSupervisors: filters.allSupervisors ?? true }));
+  dispatch(fetchCampaignsRequest({ userId, siteId })); // ✅ userId/siteId garantis non-zéro
+  dispatch(fetchDataRequest({ filter: enrichedFilter }));
+}, [authUser?.userId]); 
 
   if (!filters) return null; // ✅ garde si le state n'est pas encore prêt
 
