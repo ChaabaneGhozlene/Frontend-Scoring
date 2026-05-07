@@ -13,7 +13,7 @@ import PivotTable from "./Pivottable";
 import PivotCharts from "./Pivotcharts";
 import type { RootState } from "../../app/store";
 import { MEASURE_LABELS } from "./Pivotutils";            // ✅ casse corrigée
-import type { MeasureKey, SectionStatState } from "./StatiTypes";
+import type { FetchCampaignsPayload, MeasureKey, SectionStatState, StatistiqueFilterDto } from "./StatiTypes";
 
 const StatistiquePage: React.FC = () => {
   const dispatch = useDispatch();
@@ -29,18 +29,22 @@ const authUser = useSelector((s: RootState) => s.auth.user);
 
   // ── Chargement initial ────────────────────────────────────────────────────
 useEffect(() => {
-  if (!filters || !authUser?.userId) return; // ✅ attendre que authUser soit prêt
-  const userId = Number(authUser.userId);
-  const userRole = isNaN(Number(authUser?.userRole)) ? 1 : Number(authUser.userRole);
-  const siteId = Number((authUser as any)?.siteId ?? 0);
+    if (!authUser?.userId) return;
 
-  dispatch(setFilters({ userId, userRole, siteId }));
-  const enrichedFilter = { ...filters, userId, userRole, siteId };
+    // ✅ Le filtre ne contient PAS userId, userRole, siteId
+    const cleanFilter: StatistiqueFilterDto = {
+      dateDebut: filters?.dateDebut || new Date(new Date().getFullYear(), 0, 1).toISOString().slice(0, 10),
+      dateFin: filters?.dateFin || new Date().toISOString().slice(0, 10),
+      agentId: filters?.agentId ?? null,
+      campaignId: filters?.campaignId ?? null,
+      auditorId: filters?.auditorId ?? null,
+      allSupervisors: filters?.allSupervisors ?? true,
+    };
 
-  dispatch(fetchAgentsRequest({ userId, userRole, siteId, allSupervisors: filters.allSupervisors ?? true }));
-  dispatch(fetchCampaignsRequest({ userId, siteId })); // ✅ userId/siteId garantis non-zéro
-  dispatch(fetchDataRequest({ filter: enrichedFilter }));
-}, [authUser?.userId]); 
+    dispatch(fetchAgentsRequest({ allSupervisors: true }));
+    dispatch(fetchCampaignsRequest({})); // ✅ Payload vide
+    dispatch(fetchDataRequest({ filter: cleanFilter }));
+  }, [authUser?.userId]);
 
   if (!filters) return null; // ✅ garde si le state n'est pas encore prêt
 

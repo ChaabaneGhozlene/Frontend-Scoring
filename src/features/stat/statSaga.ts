@@ -69,8 +69,7 @@ function* handleFetchAgents(action: PayloadAction<FetchAgentsPayload>) {
   try {
     const agents: AgentDto[] = yield call(
       StatistiqueService.getAgents,
-      action.payload.userId, action.payload.userRole,
-      action.payload.siteId, action.payload.allSupervisors
+      action.payload.allSupervisors  // seulement allSupervisors
     );
     yield put(fetchAgentsSuccess(Array.isArray(agents) ? agents : []));
   } catch (err: any) {
@@ -78,17 +77,16 @@ function* handleFetchAgents(action: PayloadAction<FetchAgentsPayload>) {
   }
 }
 
+// ✅ CORRIGÉ : Ne plus passer userId, siteId
 function* handleFetchCampaigns(action: PayloadAction<FetchCampaignsPayload>) {
   try {
-    const campaigns: CampaignDto[] = yield call(
-      StatistiqueService.getCampaigns,
-      action.payload.userId, action.payload.siteId
-    );
+    const campaigns: CampaignDto[] = yield call(StatistiqueService.getCampaigns);
     yield put(fetchCampaignsSuccess(Array.isArray(campaigns) ? campaigns : []));
   } catch (err: any) {
     yield put(fetchCampaignsFailure(err?.message ?? "Erreur campagnes."));
   }
 }
+
 
 function* handleExport(action: PayloadAction<ExportPayload>) {
   try {

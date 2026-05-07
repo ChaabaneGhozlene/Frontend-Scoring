@@ -1,3 +1,5 @@
+// StatiTypes.ts
+
 export interface StatistiqueRowDto {
   surveyId: number;
   createDate: string;
@@ -18,6 +20,8 @@ export interface StatistiqueRowDto {
   questionId?: number | null;
   section: string | null;
   sectionId: number | null;
+  startPeriode?: string | null;  // ✅ Ajouté
+  endPeriode?: string | null;    // ✅ Ajouté
 }
 
 export interface AgentDto {
@@ -37,9 +41,7 @@ export interface StatistiqueFilterDto {
   campaignId?: number | null;
   auditorId?: number | null;
   allSupervisors?: boolean;
-  userId: number;
-  siteId: number;
-  userRole: number;
+  // ✅ Plus de userId, userRole, siteId - ils sont dans le JWT
 }
 
 export interface StatistiqueExportDto {
@@ -68,7 +70,6 @@ export interface PivotResult {
   measure: MeasureKey;
 }
 
-// ✅ Renommé pour éviter la collision avec features/statistique/
 export interface SectionStatState {
   data: StatistiqueRowViewModel[];
   agents: AgentDto[];
@@ -87,17 +88,13 @@ export interface FetchStatistiquePayload {
   filter: StatistiqueFilterDto;
 }
 
+// ✅ CORRIGÉ - Plus besoin de userId, userRole, siteId
 export interface FetchAgentsPayload {
-  userId: number;
-  userRole: number;
-  siteId: number;
   allSupervisors: boolean;
 }
 
-export interface FetchCampaignsPayload {
-  userId: number;
-  siteId: number;
-}
+// ✅ CORRIGÉ - Payload vide car backend lit depuis JWT
+export type FetchCampaignsPayload = Record<string, never>; // Objet vide
 
 export interface ExportPayload {
   filter: StatistiqueFilterDto;

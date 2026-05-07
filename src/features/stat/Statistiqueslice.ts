@@ -17,9 +17,7 @@ const initialFilter: StatistiqueFilterDto = {
   campaignId: null,
   auditorId: null,
   allSupervisors: true,
-  userId: 0,
-  siteId: 0,
-  userRole: 1,
+
 };
 
 const initialState: SectionStatState = { // ✅ renommé
@@ -67,7 +65,7 @@ const sectionStatSlice = createSlice({
       state.loadingAgents = false;
       state.error = action.payload;
     },
-    fetchCampaignsRequest(state, _action: PayloadAction<FetchCampaignsPayload>) {
+    fetchCampaignsRequest(state, _action: PayloadAction<Record<string, never> | undefined>) {
       state.loadingCampaigns = true;
     },
     fetchCampaignsSuccess(state, action: PayloadAction<CampaignDto[]>) {
